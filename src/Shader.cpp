@@ -89,50 +89,42 @@ class shader
 
 public:
 	shader(const std::string& vs_path, const std::string& fs_path)
-		: m_fs_file_path{fs_path}, m_vs_file_path{vs_path}, m_renderer_id{0}
+		: m_fs_file_path{fs_path}, m_vs_file_path{vs_path}, m_renderer_id{create_shader(vs_path, fs_path)}
 	{
-		this->m_renderer_id = create_shader(vs_path, fs_path);
 	}
 	~shader()
 	{
-
 		GL_CALL(glDeleteProgram(m_renderer_id));
 	}
 
 	void bind() const
 	{
-
 		GL_CALL(glUseProgram(this->m_renderer_id));
 	}
 	void unbind() const
 	{
-
 		GL_CALL(glUseProgram(0));
 	}
 
 	void setUniformVecf4(const std::string& name, glm::vec4 data)
 	{
-
 		auto location = this->get_uniform_location(name);
 		GL_CALL(glUniform4f(location, data.x, data.y, data.z, data.w));
 	}
 	void setUniformVecf3(const std::string& name, glm::vec3 data)
 	{
-
 		auto location = this->get_uniform_location(name);
 		GL_CALL(glUniform3f(location, data.x, data.y, data.z));
 	}
 
 	void setUniformMatf4(const std::string& name, const glm::mat4& data)
 	{
-
 		auto location = this->get_uniform_location(name);
 		GL_CALL(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(data)));
 	}
 
 	void setUniformInt1(const std::string& name, int data)
 	{
-
 		auto location = this->get_uniform_location(name);
 		GL_CALL(glUniform1i(location, data));
 	}

@@ -20,8 +20,7 @@ auto get_executable_path() -> std::string
 }
 auto read_shader_file(const std::string& file) -> std::string
 {
-	auto global_path = get_executable_path();
-	auto shader_path = global_path + "/shaders/";
+	const auto* shader_path = _SOLUTIONDIR "/shaders/";
 	std::println("[OpenGL][INFO]: Shader Path {}", shader_path);
 	const std::string path{shader_path + file};
 	std::ifstream fs{path};

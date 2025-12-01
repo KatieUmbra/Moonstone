@@ -29,7 +29,7 @@ set(SOURCES
     ./src/Main.cpp
     )
 
-SET(MODULE_SOURCES
+SET(MOONSTONE_SOURCES
     ./src/Moonstone.c++
     ./scenes/Scenes.c++
     ./src/external/External.c++
@@ -58,14 +58,23 @@ add_library(imgui_impl ${IMGUI_IMPL_SOURCES})
 target_link_libraries(imgui_impl PRIVATE imgui glad)
 target_include_directories(imgui_impl PRIVATE ${CMAKE_SOURCE_DIR}/libs/imgui)
 
-add_executable(ogl)
-target_sources(ogl PRIVATE ${SOURCES} PUBLIC FILE_SET CXX_MODULES FILES ${MODULE_SOURCES})
-target_compile_features(ogl PRIVATE cxx_std_23)
-target_include_directories(ogl PUBLIC
+add_library(moonstone)
+target_compile_features(moonstone PRIVATE cxx_std_23)
+target_sources(moonstone PUBLIC FILE_SET CXX_MODULES FILES ${MOONSTONE_SOURCES})
+target_include_directories(moonstone PUBLIC
         ${CMAKE_SOURCE_DIR}/libs/imgui
         ${CMAKE_SOURCE_DIR}/libs/glad/include 
         ${CMAKE_SOURCE_DIR}/libs/glfwpp/include
         ${CMAKE_SOURCE_DIR}/include 
         ${CMAKE_SOURCE_DIR}/test
     )
-target_link_libraries(ogl PRIVATE GLFWPP ${glfw3_LIBRARIES} imgui ${glm_LIBRARIES} glad imgui_impl)
+target_link_libraries(moonstone PRIVATE GLFWPP imgui_impl imgui glad ${glfw3_LIBRARIES} ${glm_LIBRARIES})
+
+add_executable(game)
+target_sources(game PRIVATE ${SOURCES})
+target_compile_features(game PRIVATE cxx_std_23)
+target_include_directories(game PUBLIC
+        ${CMAKE_SOURCE_DIR}/libs/imgui
+        ${CMAKE_SOURCE_DIR}/libs/glfwpp/include
+    )
+target_link_libraries(game PRIVATE GLFWPP imgui moonstone)
