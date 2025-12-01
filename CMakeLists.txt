@@ -24,6 +24,7 @@ set(GLFWPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # disable building GLFWPP exa
 SET(IMGUI_BUILD_GLFW_BINDING ON)
 add_subdirectory(libs/glfwpp)
 add_subdirectory(libs/glad)
+add_subdirectory(libs/angelscript/sdk/angelscript/projects/cmake/)
 
 set(SOURCES
     ./src/Main.cpp
@@ -65,10 +66,10 @@ target_include_directories(moonstone PUBLIC
         ${CMAKE_SOURCE_DIR}/libs/imgui
         ${CMAKE_SOURCE_DIR}/libs/glad/include 
         ${CMAKE_SOURCE_DIR}/libs/glfwpp/include
+        ${CMAKE_SOURCE_DIR}/libs/angelscript/sdk/angelscript/include
         ${CMAKE_SOURCE_DIR}/include 
-        ${CMAKE_SOURCE_DIR}/test
     )
-target_link_libraries(moonstone PRIVATE GLFWPP imgui_impl imgui glad ${glfw3_LIBRARIES} ${glm_LIBRARIES})
+target_link_libraries(moonstone PRIVATE GLFWPP imgui_impl imgui glad angelscript ${glfw3_LIBRARIES} ${glm_LIBRARIES})
 
 add_executable(game)
 target_sources(game PRIVATE ${SOURCES})
