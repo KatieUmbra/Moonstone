@@ -1,5 +1,6 @@
 build
-libs
+libs/glad/include
+libs/glad/src
 .cache
 compile_commands.json
 imgui.ini
