@@ -1,8 +1,10 @@
 build
 libs/glad/include
 libs/glad/src
+libs/imgui
 .cache
 compile_commands.json
 imgui.ini
 log.txt
 .clang-format
+.clang-tidy

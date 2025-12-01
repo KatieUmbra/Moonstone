@@ -1,24 +1,39 @@
-#include "VertexBuffer.hpp"
+module;
+
 #include "Assert.hpp"
+#include "glad/glad.h"
 
-gl::vertex_buffer::vertex_buffer(const void* data, unsigned int size) : m_renderer_id{0}
-{
-	GL_CALL(glGenBuffers(1, &this->m_renderer_id));
-	GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->m_renderer_id));
-	GL_CALL(glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
-}
+export module moonstone:vertex_buffer;
 
-gl::vertex_buffer::~vertex_buffer()
+export namespace moonstone
 {
-	GL_CALL(glDeleteBuffers(1, &this->m_renderer_id));
-}
+class vertex_buffer
+{
+	unsigned int m_renderer_id{};
 
-auto gl::vertex_buffer::bind() const -> void
-{
-	GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->m_renderer_id));
-}
+public:
+	vertex_buffer(const void* data, unsigned int size)
+	{
+		GL_CALL(glGenBuffers(1, &this->m_renderer_id));
+		GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->m_renderer_id));
+		GL_CALL(glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW));
+	};
+	~vertex_buffer()
+	{
+		GL_CALL(glDeleteBuffers(1, &this->m_renderer_id));
+	};
 
-auto gl::vertex_buffer::unbind() const -> void
-{
-	GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, 0));
-}
+	auto bind() const -> void
+	{
+		GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, this->m_renderer_id));
+	};
+	static auto unbind() -> void
+	{
+		GL_CALL(glBindBuffer(GL_ARRAY_BUFFER, NULL));
+	};
+	vertex_buffer(const vertex_buffer&) = delete;
+	vertex_buffer(vertex_buffer&&) = delete;
+	vertex_buffer& operator=(const vertex_buffer&) = delete;
+	vertex_buffer& operator=(vertex_buffer&&) = delete;
+};
+} // namespace moonstone

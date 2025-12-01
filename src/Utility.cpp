@@ -1,21 +1,15 @@
-#include "Utility.hpp"
+module;
+
 #include <filesystem>
 #include <fstream>
-#include <iostream>
+#include <print>
+#include <string>
 
-auto gl::read_file(const std::string& file) -> std::string
+export module moonstone:utility;
+
+export namespace moonstone
 {
-	auto global_path = get_executable_path();
-	auto shader_path = global_path + "/shaders/";
-	std::cout << "[OpenGL][INFO]: Shader path '" << shader_path << "' \n";
-	std::string path{shader_path + file};
-	std::ifstream fs{path};
-	std::string shader;
-	shader.assign((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
-	return shader;
-}
-
-auto gl::get_executable_path() -> std::string
+auto get_executable_path() -> std::string
 {
 #ifdef _DEBUG
 	auto path = std::filesystem::canonical("/proc/self/exe").parent_path().parent_path();
@@ -24,3 +18,15 @@ auto gl::get_executable_path() -> std::string
 #endif
 	return path.string();
 }
+auto read_shader_file(const std::string& file) -> std::string
+{
+	auto global_path = get_executable_path();
+	auto shader_path = global_path + "/shaders/";
+	std::println("[OpenGL][INFO]: Shader Path {}", shader_path);
+	const std::string path{shader_path + file};
+	std::ifstream fs{path};
+	std::string shader;
+	shader.assign((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
+	return shader;
+}
+} // namespace moonstone

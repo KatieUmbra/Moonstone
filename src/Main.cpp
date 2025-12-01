@@ -1,17 +1,16 @@
-#include "ImGui.hpp"
-#include "Test.hpp"
 #define GLFW_INCLUDE_NONE
-#include "Logging.hpp"
-#include "TestClearColor.hpp"
-#include "TestTexture.hpp"
 #include "glfwpp/glfwpp.h"
+#include "imgui.h"
 
-auto main() -> int
+import moonstone;
+import scenes;
+
+int main()
 {
 	// =======================================================
 	//                    Initialization
 	// =======================================================
-	auto logger = setup_logging();
+	auto logger = moonstone::setup_logging();
 	[[maybe_unused]] auto library = glfw::init();
 	const glfw::WindowHints hints{.resizable = false,
 								  .clientApi = glfw::ClientApi::OpenGl,
@@ -19,28 +18,27 @@ auto main() -> int
 								  .contextVersionMinor = 6,
 								  .openglProfile = glfw::OpenGlProfile::Core};
 	hints.apply();
-	const gl::window_properties props{hints, 800, 800, "Hello OpenGL", false, true};
-	gl::window window{props};
-	gl::imgui::init_imgui(window.get_glfw_window());
-	gl::renderer renderer{window};
+	const moonstone::window_properties props{
+		.hints = hints, .width = 800, .height = 800, .title = "Hello OpenGL", .vsync = false, .fullscreen = true};
+	moonstone::window window{props};
+	moonstone::external::imgui::init_imgui(window.get_glfw_window());
+	moonstone::renderer renderer{window};
 
 	// =======================================================
 	//                       Testing
 	// =======================================================
 
-	gl::test::clear_color clear_test{};
-	gl::test::texture texture_test{renderer};
-	// gl::test::collisions collisions_test{renderer};
+	moonstone::scenes::clear_color clear_screen_scene{};
+	moonstone::scenes::texture texture_scene{renderer};
 
-	gl::test::register_test(clear_test);
-	gl::test::register_test(texture_test);
-	// gl::test::register_test(collisions_test);
+	moonstone::scene::register_scene(texture_scene);
+	moonstone::scene::register_scene(clear_screen_scene);
 
 	// =======================================================
 
-	auto& tests = gl::test::registered_tests;
-	gl::test::test base_reference{};
-	std::reference_wrapper<gl::test::test> current_test = base_reference;
+	auto& tests = moonstone::scene::registered_scenes;
+	moonstone::scene base_reference{};
+	std::reference_wrapper<moonstone::scene> current_test = base_reference;
 
 	// =======================================================
 	//                      Main Loop
@@ -51,15 +49,15 @@ auto main() -> int
 		renderer.clear();
 		if (current_test.get().get_name() != "")
 		{
-			current_test.get().on_update(0.0f);
+			current_test.get().on_update(0.0F);
 			current_test.get().on_render();
 		}
 		else
 		{
-			renderer.clear({0.1f, 0.1f, 0.1f, 0.1f});
+			renderer.clear({0.1F, 0.1F, 0.1F, 0.1F});
 		}
 
-		gl::imgui::start_render_imgui();
+		moonstone::external::imgui::start_render_imgui();
 		ImGui::Text("OpenGL Test Application");
 		auto framerate = ImGui::GetIO().Framerate;
 		ImGui::Text("Framerate %.2f", framerate);
@@ -79,6 +77,7 @@ auto main() -> int
 		{
 			ImGui::Text("Tests Available:");
 			ImGui::BeginGroup();
+#pragma unroll 2
 			for (auto& element : tests)
 			{
 				if (ImGui::Button(element.get().get_name().c_str()))
@@ -89,9 +88,9 @@ auto main() -> int
 			ImGui::EndGroup();
 		}
 
-		gl::imgui::end_render_imgui();
+		moonstone::external::imgui::end_render_imgui();
 		renderer.update_buffers();
 	}
-	gl::imgui::cleanup_imgui();
+	moonstone::external::imgui::cleanup_imgui();
 	logger->close();
 }
