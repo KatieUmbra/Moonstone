@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I${CMAKE_SOURCE_DIR}/libs/include -fdiagnostics-color=always")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -I${CMAKE_SOURCE_DIR}/libs/include")
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -14,7 +14,15 @@ endif()
 
 if (CMAKE_BUILD_TYPE EQUAL "Debug")
     add_compile_definitions(_DEBUG)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+    set(CMAKE_LINKER_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+    message(flags: "${CMAKE_CXX_FLAGS}")
+    add_compile_options(-fsanitize=address)
+    add_link_options(-fsanitize=address)
 endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+set(CMAKE_LINKER_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
 
 add_compile_definitions(_SOLUTIONDIR="${CMAKE_SOURCE_DIR}")
 
@@ -32,20 +40,26 @@ set(SOURCES
 
 SET(MOONSTONE_SOURCES
     ./src/Moonstone.c++
-    ./scenes/Scenes.c++
     ./src/external/External.c++
+    ./scenes/Scenes.c++
     ./src/Scene.cpp
     ./src/Window.cpp
-    ./src/Renderer.cpp
-    ./src/Shader.cpp
     ./src/Utility.cpp
-    ./src/Texture.cpp
     ./src/Logging.cpp
-    ./src/VertexBuffer.cpp
-    ./src/VertexArray.cpp
-    ./src/BufferLayout.cpp
-    ./src/IndexBuffer.cpp
+    # External Module
     ./src/external/ImGui.cpp
+    # Renderer Module
+    ./src/renderer/Shader.cpp
+    ./src/renderer/VertexElement.cpp
+    ./src/renderer/VertexBuffer.cpp
+    ./src/renderer/VertexArray.cpp
+    ./src/renderer/BufferLayout.cpp
+    ./src/renderer/IndexBuffer.cpp
+    ./src/renderer/Texture.cpp
+    ./src/renderer/Renderer.cpp
+    # Engine Module
+    ./src/engine/quad.cpp
+    # Scenes Module
     ./scenes/SceneTexture.cpp
     ./scenes/SceneClearColor.cpp
     )

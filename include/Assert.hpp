@@ -33,11 +33,7 @@ static auto log_call(const char* function, const char* file, int line) -> bool
 #define ASSERT(x)                                                                                                      \
 	if (!(x))                                                                                                          \
 		__builtin_debugtrap();
-#ifdef _DEBUG
 #define GL_CALL(x)                                                                                                     \
 	gl::clear_error();                                                                                                 \
 	x;                                                                                                                 \
 	ASSERT(gl::log_call(#x, __FILENAME__, __LINE__))
-#else
-#define GL_CALL(x) x;
-#endif

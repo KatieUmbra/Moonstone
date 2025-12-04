@@ -7,12 +7,12 @@ module;
 
 export module moonstone:renderer;
 
-import :vertex_array;
 import :window;
-import :index_buffer;
 import :shader;
+import :vertex_array;
+import :index_buffer;
 
-export namespace moonstone
+export namespace moonstone::renderer
 {
 
 class renderer
@@ -41,7 +41,6 @@ public:
 	}
 	void clear(glm::vec4 color) const
 	{
-
 		this->clear();
 		GL_CALL(glClearColor(color.x, color.y, color.z, color.w));
 	}
@@ -52,4 +51,4 @@ public:
 		this->m_window.get_glfw_window().swapBuffers();
 	}
 };
-} // namespace moonstone
+} // namespace moonstone::renderer

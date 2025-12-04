@@ -2,8 +2,11 @@ module;
 
 #define GLFW_INCLUDE_NONE
 #include <array>
+#include <cstdint>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/vector_float2.hpp>
+#include <glm/glm.hpp>
 #include <imgui.h>
 #include <string>
 
@@ -18,52 +21,38 @@ export namespace moonstone::scenes
 {
 class texture : public moonstone::scene
 {
-	float low_bound_1, upper_bound_1;
-	float low_bound_2, upper_bound_2;
-	std::array<float, 40> positions;
 	std::array<unsigned int, 12> indices;
-	vertex_array vao;
-	vertex_buffer vbo;
-	index_buffer ibo;
-	buffer_layout blo;
-	shader shader;
-	moonstone::texture tex;
-	renderer& renderer;
-	glm::vec3 translationA;
-	glm::vec3 translationB;
+	renderer::vertex_array vao;
+	renderer::vertex_buffer vbo;
+	moonstone::engine::quad quad1, quad2;
+	renderer::index_buffer ibo;
+	renderer::buffer_layout blo;
+	renderer::shader shader;
+	renderer::texture tex;
+	renderer::renderer& renderer;
+	glm::vec2 new_position;
 
 public:
-	texture(moonstone::renderer& renderer)
-		: low_bound_1(-50.0f), upper_bound_1(50.0f), low_bound_2(100.0f), upper_bound_2(200.0f),
-		  positions{
-			  low_bound_1,	 low_bound_1,	0.0f, 0.0f, upper_bound_1, low_bound_1,	  1.0f, 0.0f,
-			  upper_bound_1, upper_bound_1, 1.0f, 1.0f, low_bound_1,   upper_bound_1, 0.0f, 1.0f,
-			  low_bound_2,	 low_bound_2,	0.0f, 0.0f, upper_bound_2, low_bound_2,	  1.0f, 0.0f,
-			  upper_bound_2, upper_bound_2, 1.0f, 1.0f, low_bound_2,   upper_bound_2, 0.0f, 1.0f,
-		  },
-		  indices{0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4}, vao{}, vbo{&positions, 40u * sizeof(float)},
-		  ibo{reinterpret_cast<const unsigned int*>(&indices), 12u}, blo{}, shader{"shader.vert", "shader.frag"},
-		  tex{"texture.png"}, renderer{renderer}, translationA(200, 200, 0), translationB(400, 200, 0)
+	texture(renderer::renderer& renderer)
+		: quad1{{200.0F, 100.0F}, {100.0F, 100.0F}, {0.5F, 0.5F}, 0, vbo},
+		  quad2{{400.0F, 50.0F}, {50.0F, 50.0F}, {0.5F, 0.5F}, 0, vbo}, indices{0, 1, 2, 2, 3, 0}, vbo{},
+		  ibo{reinterpret_cast<const std::uint32_t*>(&indices), 12U}, blo{}, shader{"shader.vert", "shader.frag"},
+		  tex{"texture.png"}, renderer{renderer}, new_position()
 	{
-		blo.push<float>(2);
-		blo.push<float>(2);
+		renderer::vertex_element::register_layout(blo);
 		vao.add_buffer(vbo, blo);
-
 		vao.bind();
 		ibo.bind();
-		vbo.bind();
 		shader.bind();
 		tex.bind();
 
 		shader.setUniformInt1("u_texture", 0);
 
 		vao.unbind();
-		vbo.unbind();
 		ibo.unbind();
 		shader.unbind();
 	}
 	~texture()
-
 	{
 		vao.unbind();
 		vbo.unbind();
@@ -75,22 +64,17 @@ public:
 	}
 	void on_render() override
 	{
-
 		shader.bind();
-		glm::mat4 model = glm::translate(glm::mat4{1.0f}, translationA);
+		glm::mat4 model = glm::mat4{1.0f};
 		glm::mat4 mvp = projection * view * model;
-		shader.setUniformMatf4("u_model_view_projection", mvp);
-		renderer.draw(vao, ibo, shader);
-
-		model = glm::translate(glm::mat4{1.0f}, translationB);
-		mvp = projection * view * model;
 		shader.setUniformMatf4("u_model_view_projection", mvp);
 		renderer.draw(vao, ibo, shader);
 	};
 	void on_imgui_render() override
 	{
-		ImGui::SliderFloat3("Translate A", &translationA.x, 0.0f, 800.0f);
-		ImGui::SliderFloat3("Translate B", &translationB.x, 0.0f, 800.0f);
+		ImGui::SliderFloat("Translate X", &this->new_position.x, 0.0F, 800.0F);
+		ImGui::SliderFloat("Translate Y", &this->new_position.y, 0.0F, 800.0F);
+		this->quad1.set_position(this->new_position);
 	}
 	bool operator==(const scene& other) override
 	{

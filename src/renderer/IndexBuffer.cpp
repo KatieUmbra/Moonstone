@@ -5,7 +5,7 @@ module;
 
 export module moonstone:index_buffer;
 
-export namespace moonstone
+export namespace moonstone::renderer
 {
 class index_buffer
 {
@@ -39,4 +39,4 @@ public:
 		return this->m_count;
 	}
 };
-} // namespace moonstone
+} // namespace moonstone::renderer

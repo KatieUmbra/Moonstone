@@ -2,8 +2,10 @@ module;
 
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <print>
 #include <string>
+#include <utility>
 
 export module moonstone:utility;
 
@@ -28,4 +30,21 @@ auto read_shader_file(const std::string& file) -> std::string
 	shader.assign((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
 	return shader;
 }
+class defer
+{
+	std::function<void()> m_defered;
+
+public:
+	explicit defer(std::function<void()> defered) : m_defered{std::move(defered)}
+	{
+	}
+	~defer()
+	{
+		m_defered();
+	}
+	defer(const defer&) = default;
+	defer(defer&&) = delete;
+	defer& operator=(const defer&) = default;
+	defer& operator=(defer&&) = delete;
+};
 } // namespace moonstone

@@ -1,12 +1,16 @@
 module;
 
 #include "glad/glad.h"
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
 #include <exception>
+#include <glm/ext/vector_float2.hpp>
 #include <vector>
 
 export module moonstone:buffer_layout;
 
-export namespace moonstone
+export namespace moonstone::renderer
 {
 struct buffer_element
 {
@@ -19,7 +23,6 @@ struct buffer_element
 		switch (type)
 		{
 		case GL_FLOAT:
-			return 4;
 		case GL_UNSIGNED_INT:
 			return 4;
 		case GL_UNSIGNED_BYTE:
@@ -47,9 +50,10 @@ public:
 		std::terminate();
 	}
 
-	PUSH(float, GL_FLOAT, false);
-	PUSH(unsigned int, GL_UNSIGNED_INT, false);
-	PUSH(unsigned char, GL_UNSIGNED_BYTE, true);
+	PUSH(std::float_t, GL_FLOAT, false);
+	PUSH(std::int32_t, GL_INT, false);
+	PUSH(std::uint32_t, GL_UNSIGNED_INT, false);
+	PUSH(std::byte, GL_UNSIGNED_BYTE, true);
 
 	auto get_elements() const -> const std::vector<buffer_element>&
 	{
@@ -61,4 +65,4 @@ public:
 		return this->m_stride;
 	}
 };
-} // namespace moonstone
+} // namespace moonstone::renderer

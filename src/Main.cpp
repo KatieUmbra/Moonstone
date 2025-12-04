@@ -1,3 +1,5 @@
+#include <glm/ext/vector_float2.hpp>
+#include <glm/ext/vector_float3.hpp>
 #define GLFW_INCLUDE_NONE
 #include "glfwpp/glfwpp.h"
 #include "imgui.h"
@@ -22,7 +24,7 @@ int main()
 		.hints = hints, .width = 800, .height = 800, .title = "Hello OpenGL", .vsync = false, .fullscreen = true};
 	moonstone::window window{props};
 	moonstone::external::imgui::init_imgui(window.get_glfw_window());
-	moonstone::renderer renderer{window};
+	moonstone::renderer::renderer renderer{window};
 
 	// =======================================================
 	//                       Testing

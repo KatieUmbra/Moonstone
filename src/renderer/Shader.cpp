@@ -14,7 +14,7 @@ export module moonstone:shader;
 
 import :utility;
 
-export namespace moonstone
+export namespace moonstone::renderer
 {
 class shader
 {
@@ -129,4 +129,4 @@ public:
 		GL_CALL(glUniform1i(location, data));
 	}
 };
-} // namespace moonstone
+} // namespace moonstone::renderer

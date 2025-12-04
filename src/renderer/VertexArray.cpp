@@ -3,13 +3,14 @@ module;
 #include "Assert.hpp"
 #include "glad/glad.h"
 #include <cstdint>
+#include <print>
 
 export module moonstone:vertex_array;
 
 import :vertex_buffer;
 import :buffer_layout;
 
-export namespace moonstone
+export namespace moonstone::renderer
 {
 class vertex_array
 {
@@ -24,18 +25,18 @@ public:
 	{
 		GL_CALL(glDeleteVertexArrays(1, &this->m_renderer_id));
 	}
-	void add_buffer(const vertex_buffer& vb, const buffer_layout& bl)
+	void add_buffer(const vertex_buffer& vb, const buffer_layout& bl) const
 	{
 		this->bind();
 		vb.bind();
 		const auto& elements = bl.get_elements();
 		std::uintptr_t offset = 0;
 #pragma unroll
-		for (std::uint16_t i = 0; i < elements.size(); i++)
+		for (std::uint32_t i = 0; i < elements.size(); i++)
 		{
 			const auto& element = elements[i];
 			GL_CALL(glEnableVertexAttribArray(i));
-			GL_CALL(glVertexAttribPointer(i, element.count, element.type, (element.normalized ? GL_TRUE : GL_FALSE),
+			GL_CALL(glVertexAttribPointer(i, 4, element.type, (element.normalized ? GL_TRUE : GL_FALSE),
 										  bl.get_stride(), reinterpret_cast<const void*>(offset));)
 			offset += element.count * buffer_element::get_size_of_type(element.type);
 		}
@@ -53,4 +54,4 @@ public:
 	vertex_array& operator=(const vertex_array&) = delete;
 	vertex_array& operator=(vertex_array&&) = delete;
 };
-} // namespace moonstone
+} // namespace moonstone::renderer

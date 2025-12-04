@@ -10,7 +10,7 @@ export module moonstone:texture;
 
 import :utility;
 
-export namespace moonstone
+export namespace moonstone::renderer
 {
 class texture
 {
@@ -69,4 +69,4 @@ public:
 		return this->m_height;
 	}
 };
-} // namespace moonstone
+} // namespace moonstone::renderer
