@@ -24,23 +24,22 @@ class texture : public moonstone::scene
 {
 	std::array<unsigned int, 12> indices;
 	renderer::vertex_array vao;
-	renderer::vertex_buffer vbo;
-	moonstone::engine::quad quad1;
 	renderer::index_buffer ibo;
+	renderer::vertex_buffer vbo;
+	moonstone::engine::quad quad1, quad2;
 	renderer::buffer_layout blo;
 	renderer::shader shader;
 	renderer::texture tex;
 	renderer::renderer& renderer;
-	glm::vec2 new_position;
+	glm::vec2 new_pos1, new_pos2;
 
 public:
 	explicit texture(renderer::renderer& renderer)
-		: quad1{{0.0F, 0.0F}, {200.0F, 200.0F}, {0.0F, 0.0F}, 0, vbo},
-		  /* quad2{{400.0F, 50.0F}, {50.0F, 50.0F}, {0.5F, 0.5F}, 0, vbo}, */
-		  indices{0, 1, 2, 2, 3, 0}, vbo{},
-		  ibo{reinterpret_cast<const std::uint32_t*>(&indices), 6U}, blo{},
+		: quad1{{}, {200.0F, 200.0F}, {0.0F, 0.0F}, 0, vbo, ibo},
+		  quad2{{}, {50.0F, 50.0F}, {0.5F, 0.5F}, 0, vbo, ibo},
+		  indices{0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4}, ibo{}, blo{},
 		  shader{"shader.vert", "shader.frag"}, tex{"texture.png"},
-		  renderer{renderer}, new_position()
+		  renderer{renderer}, new_pos1()
 	{
 		renderer::vertex_element::register_layout(blo);
 		vao.add_buffer(vbo, blo);
@@ -51,14 +50,14 @@ public:
 
 		shader.setUniformInt1("u_texture", 0);
 
-		vao.unbind();
+		moonstone::renderer::vertex_array::unbind();
 		ibo.unbind();
 		shader.unbind();
 	}
 	~texture()
 	{
-		vao.unbind();
-		vbo.unbind();
+		moonstone::renderer::vertex_array::unbind();
+		moonstone::renderer::vertex_buffer::unbind();
 		ibo.unbind();
 		shader.unbind();
 	}
@@ -68,19 +67,18 @@ public:
 	void on_render() override
 	{
 		shader.bind();
-		glm::mat4 model = glm::mat4{1.0f};
+		glm::mat4 model = glm::mat4{1.0F};
 		glm::mat4 mvp = projection * view * model;
 		shader.setUniformMatf4("u_model_view_projection", mvp);
 		renderer.draw(vao, ibo, shader);
 	};
 	void on_imgui_render() override
 	{
-		ImGui::SliderFloat2("Position", &this->new_position.x, -300.0F, 300.0F);
-		if (ImGui::Button("Log Buffer"))
-		{
-			this->vbo.log_values();
-		}
-		this->quad1.set_position(this->new_position);
+		ImGui::SliderFloat2("Position1", &this->new_pos1.x, -300.0F, 300.0F);
+		ImGui::SliderFloat2("Position2", &this->new_pos2.x, -300.0F, 300.0F);
+		this->quad1.set_position(this->new_pos1);
+		this->quad2.set_position(this->new_pos2);
+		this->vbo.update();
 	}
 	bool operator==(const scene& other) override
 	{

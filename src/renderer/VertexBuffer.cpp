@@ -5,7 +5,6 @@ module;
 #include <cstdint>
 #include <flat_map>
 #include <glad/glad.h>
-#include <initializer_list>
 #include <print>
 #include <stdexcept>
 #include <vector>
@@ -27,11 +26,9 @@ public:
 	{
 		GL_CALL(glGenBuffers(1, &this->m_renderer_id));
 		this->bind();
-		const void* data =
-			reinterpret_cast<const void*>(this->m_vertices.values().data());
 		GL_CALL(glBufferData(GL_ARRAY_BUFFER,
 							 this->m_vertices.size() * sizeof(vertex_element),
-							 data, GL_STATIC_DRAW));
+							 this->m_vertices.values().data(), GL_STATIC_DRAW));
 	};
 	~vertex_buffer()
 	{
@@ -40,29 +37,32 @@ public:
 	std::uint32_t insert(vertex_element element)
 	{
 		this->m_vertices.insert({this->m_vertex_count, element});
+		this->update();
 		return this->m_vertex_count++;
 	}
-	void update(std::uint32_t element_id, vertex_element element)
+	void replace(std::uint32_t element_id, vertex_element element)
 	{
 		try
 		{
 			vertex_element& element_ref = this->m_vertices.at(element_id);
 			element_ref = element;
 		}
-		catch (std::out_of_range e)
+		catch (const std::out_of_range& e)
 		{
 			std::println("Oops! called index: {}", element_id);
 		}
+	}
+	void update()
+	{
 		this->bind();
-		long old_size;
+		std::int64_t old_size = 0;
 		glGetBufferParameteri64v(GL_ARRAY_BUFFER, GL_BUFFER_SIZE, &old_size);
 		auto size = this->m_vertices.size() * sizeof(vertex_element);
 		if (size > old_size)
 		{
-			GL_CALL(glBufferData(
-				GL_ARRAY_BUFFER, size,
-				reinterpret_cast<const void*>(this->m_vertices.values().data()),
-				GL_DYNAMIC_DRAW));
+			GL_CALL(glBufferData(GL_ARRAY_BUFFER, size,
+								 this->m_vertices.values().data(),
+								 GL_DYNAMIC_DRAW));
 		}
 		else
 		{
@@ -70,18 +70,6 @@ public:
 									reinterpret_cast<const void*>(
 										this->m_vertices.values().data())));
 		}
-	}
-	void log_values()
-	{
-		std::println("-----------");
-		std::ranges::for_each(
-			static_cast<std::vector<vertex_element>>(this->m_vertices.values()),
-			[](vertex_element& value) {
-				std::println("Pos: ({}, {}), UV: ({}, "
-							 "{}), Layer: {}",
-							 value.m_position.x, value.m_position.y,
-							 value.m_uv.x, value.m_uv.y, value.m_tex_layer);
-			});
 	}
 	auto bind() const -> void
 	{

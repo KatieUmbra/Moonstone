@@ -37,8 +37,6 @@ public:
 			const auto& element = elements[i];
 			const auto stride = bl.get_stride();
 			const auto size = element.count;
-			std::println("Index: {}, Size: {}, Stride: {}, Offset: {}", i, size,
-						 stride, offset);
 			GL_CALL(glEnableVertexAttribArray(i));
 			GL_CALL(glVertexAttribPointer(
 						i, size, element.type,
