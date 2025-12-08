@@ -14,7 +14,7 @@ export namespace moonstone
 {
 constexpr auto setup_logging() -> std::unique_ptr<std::ofstream>
 {
-	const std::string file{_SOLUTIONDIR "/log.txt"};
+	const std::string file{_ROOTDIR "/log.txt"};
 	auto logging_file = std::make_unique<std::ofstream>(file, std::ios::app);
 	auto current = std::chrono::system_clock::now();
 	std::println("\n===================");

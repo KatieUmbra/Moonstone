@@ -26,14 +26,16 @@ class window
 	glfw::Window m_window;
 
 public:
-	explicit window(const window_properties& props) : m_window{glfw::Window{props.width, props.height, props.title}}
+	explicit window(const window_properties& props)
+		: m_window{glfw::Window{props.width, props.height, props.title}}
 	{
 
 		props.hints.apply();
 		glfw::makeContextCurrent(this->m_window);
 		if (props.vsync)
 			glfw::swapInterval(1);
-		if (gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0)
+		if (gladLoadGLLoader(
+				reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0)
 		{
 			std::cerr << "Failed to initialize GLAD" << '\n';
 			std::terminate();

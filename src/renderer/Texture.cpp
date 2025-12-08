@@ -24,7 +24,7 @@ public:
 		: m_renderer_id{0}, m_file_path{path}, m_local_buffer{nullptr}, m_width{0}, m_height{0}, m_pixel_size{0}
 	{
 		stbi_set_flip_vertically_on_load(1);
-		auto real_path = _SOLUTIONDIR "/assets/" + path;
+		auto real_path = _ROOTDIR "/assets/" + path;
 		m_local_buffer = stbi_load(real_path.c_str(), &this->m_width, &this->m_height, &this->m_pixel_size, 4);
 
 		GL_CALL(glGenTextures(1, &this->m_renderer_id));

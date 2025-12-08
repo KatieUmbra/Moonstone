@@ -28,7 +28,8 @@ public:
 		shader.bind();
 		vao.bind();
 		ib.bind();
-		GL_CALL(glDrawElements(GL_TRIANGLES, ib.get_count(), GL_UNSIGNED_INT, nullptr));
+		GL_CALL(glDrawElements(GL_TRIANGLES, ib.get_count(), GL_UNSIGNED_INT,
+							   nullptr));
 	}
 	void clear() const
 	{

@@ -1,11 +1,11 @@
 module;
 
-#include "glad/glad.h"
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
-#include <glm/ext/vector_float2.hpp>
+#include <glad/glad.h>
+#include <glm/glm.hpp>
 #include <vector>
 
 export module moonstone:buffer_layout;
@@ -31,21 +31,22 @@ struct buffer_element
 			return 0;
 		}
 	}
-};
+} __attribute__((packed, aligned(16)));
 class buffer_layout
 {
 	std::vector<buffer_element> m_elements;
 	unsigned int m_stride;
 
 public:
-#define PUSH(TYPE, GL_TYPE, NORMALIZE)                                                                                 \
-	template <> void push<TYPE>(unsigned int count)                                                                    \
-	{                                                                                                                  \
-		this->m_elements.emplace_back(buffer_element{GL_TYPE, count, NORMALIZE});                                      \
-		this->m_stride += buffer_element::get_size_of_type(GL_TYPE) * count;                                           \
+#define PUSH(TYPE, GL_TYPE, NORMALIZE)                                         \
+	template <> void push<TYPE>(unsigned int count)                            \
+	{                                                                          \
+		this->m_elements.emplace_back(                                         \
+			buffer_element{GL_TYPE, count, NORMALIZE});                        \
+		this->m_stride += buffer_element::get_size_of_type(GL_TYPE) * count;   \
 	}
 
-	template <typename T> void push(unsigned int count)
+	template <typename T> void push(std::uint32_t /*Count*/)
 	{
 		std::terminate();
 	}
@@ -55,12 +56,12 @@ public:
 	PUSH(std::uint32_t, GL_UNSIGNED_INT, false);
 	PUSH(std::byte, GL_UNSIGNED_BYTE, true);
 
-	auto get_elements() const -> const std::vector<buffer_element>&
+	[[nodiscard]] const std::vector<buffer_element>& get_elements() const
 	{
 		return this->m_elements;
 	}
 
-	auto get_stride() const -> unsigned int
+	[[nodiscard]] std::uint32_t get_stride() const
 	{
 		return this->m_stride;
 	}
