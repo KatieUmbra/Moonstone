@@ -4,7 +4,6 @@ module;
 #include "glad/glad.h"
 #include <cstddef>
 #include <cstdint>
-#include <print>
 
 export module moonstone:vertex_array;
 
@@ -32,6 +31,7 @@ public:
 		vb.bind();
 		const auto& elements = bl.get_elements();
 		std::uintptr_t offset = 0;
+#pragma unroll 4
 		for (std::uint32_t i = 0; i < elements.size(); i++)
 		{
 			const auto& element = elements[i];

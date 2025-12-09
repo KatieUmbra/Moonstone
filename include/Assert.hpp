@@ -22,7 +22,8 @@ static auto log_call(const char* function, const char* file, int line) -> bool
 	while (GLenum error = glGetError())
 	{
 		gl::error_code = error;
-		std::cerr << "[OpenGL][ERROR]: " << error << " at: " << function << ":"
+		std::cerr << "[" << __FILE__ << ':' << __LINE__
+				  << "][OpenGL][ERROR]: " << error << " at: " << function << ":"
 				  << file << ":" << line << '\n';
 		return false;
 	}
@@ -32,14 +33,15 @@ static auto log_call(const char* function, const char* file, int line) -> bool
 
 #define __FILENAME__                                                           \
 	(std::strrchr(__FILE__, '/') ? std::strrchr(__FILE__, '/') + 1 : __FILE__)
+#ifdef _DEBUG
 #define ASSERT(x)                                                              \
 	if (!(x))                                                                  \
 		__builtin_debugtrap();
-#ifdef _DEBUG
 #define GL_CALL(x)                                                             \
 	gl::clear_error();                                                         \
 	x;                                                                         \
 	ASSERT(gl::log_call(#x, __FILENAME__, __LINE__))
 #else
+#define ASSERT(_)
 #define GL_CALL(x) x;
 #endif

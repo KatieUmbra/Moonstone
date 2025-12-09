@@ -9,6 +9,7 @@ string(CONCAT CMAKE_CXX_FLAGS "-stdlib=libc++")
 
 find_package(imgui)
 find_package(glm)
+find_package(doctest)
 set(GLFWPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # disable building GLFWPP examples
 SET(IMGUI_BUILD_GLFW_BINDING ON)
 add_subdirectory(libs/glfwpp)
@@ -38,6 +39,7 @@ SET(MOONSTONE_SOURCES
     ./src/renderer/IndexBuffer.cpp
     ./src/renderer/Texture.cpp
     ./src/renderer/Renderer.cpp
+    ./src/renderer/TextureArray.cpp
     # Engine Module
     ./src/engine/quad.cpp
     # Scenes Module
@@ -63,6 +65,7 @@ target_compile_definitions(moonstone PRIVATE $<$<CONFIG:Debug>:_DEBUG> _ROOTDIR=
 target_compile_options(moonstone PRIVATE $<$<CONFIG:Debug>:-fno-omit-frame-pointer -fsanitize=address>)
 target_link_options(moonstone PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
 target_include_directories(moonstone SYSTEM PRIVATE
+        ${doctest_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/libs/imgui
         ${CMAKE_SOURCE_DIR}/libs/glad/include 
         ${CMAKE_SOURCE_DIR}/libs/glfwpp/include

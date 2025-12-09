@@ -22,24 +22,25 @@ export namespace moonstone::scenes
 {
 class texture : public moonstone::scene
 {
-	std::array<unsigned int, 12> indices;
 	renderer::vertex_array vao;
-	renderer::index_buffer ibo;
-	renderer::vertex_buffer vbo;
-	moonstone::engine::quad quad1, quad2;
-	renderer::buffer_layout blo;
+	renderer::index_buffer ibo{};
+	renderer::vertex_buffer vbo{};
+	renderer::buffer_layout blo{};
+	moonstone::engine::quad quad1, quad2, quad3;
 	renderer::shader shader;
 	renderer::texture tex;
+	renderer::texture_array<256, 256> tex_arr;
 	renderer::renderer& renderer;
-	glm::vec2 new_pos1, new_pos2;
+	glm::vec2 new_pos1{}, new_pos2{}, new_pos3{};
 
 public:
 	explicit texture(renderer::renderer& renderer)
-		: quad1{{}, {200.0F, 200.0F}, {0.0F, 0.0F}, 0, vbo, ibo},
-		  quad2{{}, {50.0F, 50.0F}, {0.5F, 0.5F}, 0, vbo, ibo},
-		  indices{0, 1, 2, 2, 3, 0, 4, 5, 6, 6, 7, 4}, ibo{}, blo{},
+		: quad1{{}, {200.0F, 200.0F}, {0.0F, 0.0F}, 2, vbo, ibo},
+		  quad2{{}, {50.0F, 50.0F}, {0.5F, 0.5F}, 1, vbo, ibo},
+		  quad3{{}, {300.0F, 300.0F}, {0.0F, 0.0F}, 0, vbo, ibo},
 		  shader{"shader.vert", "shader.frag"}, tex{"texture.png"},
-		  renderer{renderer}, new_pos1()
+		  renderer{renderer},
+		  tex_arr({"texarr2.png", "texarr3.png", "texarr1.png"})
 	{
 		renderer::vertex_element::register_layout(blo);
 		vao.add_buffer(vbo, blo);
@@ -47,8 +48,10 @@ public:
 		ibo.bind();
 		shader.bind();
 		tex.bind();
+		tex_arr.bind();
 
-		shader.setUniformInt1("u_texture", 0);
+		// shader.setUniformInt1("u_texture", 0);
+		shader.setUniformInt1("u_textureArray", 1);
 
 		moonstone::renderer::vertex_array::unbind();
 		ibo.unbind();
@@ -74,16 +77,13 @@ public:
 	};
 	void on_imgui_render() override
 	{
-		ImGui::SliderFloat2("Position1", &this->new_pos1.x, -300.0F, 300.0F);
-		ImGui::SliderFloat2("Position2", &this->new_pos2.x, -300.0F, 300.0F);
+		ImGui::SliderFloat2("Position1", &this->new_pos1.x, 0.0F, 500.0F);
+		ImGui::SliderFloat2("Position2", &this->new_pos2.x, 0.0F, 500.0F);
+		ImGui::SliderFloat2("Position3", &this->new_pos3.x, 0.0F, 500.0F);
 		this->quad1.set_position(this->new_pos1);
 		this->quad2.set_position(this->new_pos2);
+		this->quad3.set_position(this->new_pos3);
 		this->vbo.update();
-	}
-	bool operator==(const scene& other) override
-	{
-
-		return this->get_name() == other.get_name();
 	}
 	[[nodiscard]] std::string get_name() const override
 	{

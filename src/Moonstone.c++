@@ -9,6 +9,7 @@ export import external;
 // renderer stuff
 export import :shader;
 export import :texture;
+export import :texture_array;
 export import :vertex_element;
 export import :vertex_buffer;
 export import :vertex_array;

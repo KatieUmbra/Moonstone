@@ -3,7 +3,8 @@
 Repository continuing my old [OpenGL_Engine](https://github.com/KatieUmbra/OpenGL_Engine) project that turns it into a functioning game engine.
 # Building
 
-- Install the building dependencies `imgui`, `clang`, `libc++`/`libcxx`, `stb`, `glm`, `cmake` and `ninja`.
+- Install the library dependencies `imgui`, `stb`, `glm`, `doctest`
+- Install the building dependencies `cmake`, `ninja`, `clang`, `libc++`/`libcxx`
 
 - Clone the repository with submodules `$ git clone --recursive`
 

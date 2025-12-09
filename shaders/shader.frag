@@ -3,11 +3,12 @@
 layout(location = 0) out vec4 color;
 
 uniform sampler2D u_texture;
+uniform sampler2DArray u_textureArray;
 
 in vec2 v_texture_coordinate;
+flat in uint v_texture_layer;
 
 void main()
 {
-    vec4 texture_color = texture(u_texture, v_texture_coordinate);
-    color = texture_color;
+    color = vec4(texture(u_textureArray, vec3(v_texture_coordinate.xy, v_texture_layer)));
 }
