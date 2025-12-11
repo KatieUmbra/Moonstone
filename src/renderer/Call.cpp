@@ -1,6 +1,6 @@
 module;
 
-#include <concepts>
+#include <algorithm>
 #include <expected>
 #include <queue>
 #include <source_location>
@@ -15,52 +15,57 @@ export namespace moonstone::renderer
 // https://www.cppstories.com/2021/non-terminal-variadic-args/
 struct gl
 {
-	gl(std::source_location l = std::source_location::current())
-		: m_location(std::move(l))
+	explicit gl(std::source_location l = std::source_location::current())
+		: m_location(l)
 	{
+		std::string_view file{l.file_name()};
+		std::string new_file{file.begin() + file.rfind('/'), file.end()};
+		this->m_short_file = new_file;
 	}
 	template <typename T, typename F, typename... Args>
-	std::expected<T, error<gl_error>> call_returning(F f, Args... args)
+	std::expected<T, error::gl_error> call_returning(F f, Args... args)
 	{
 		// Empty the queue
-		std::queue<error<gl_error>>().swap(errors);
+		std::queue<error::gl_error>().swap(error::errors);
 		// Call opengl function
 		T returned = f(args...);
 		// Check for errors in the queue
-		if (errors.empty())
+		if (error::errors.empty())
 		{
 			return returned;
 		}
-		while (errors.size() > 1)
+		while (error::errors.size() > 1)
 		{
-			errors.pop();
+			error::errors.pop();
 		}
-		auto err = errors.back();
-		err.m_location = this->m_location;
-		return std::unexpected{std::move(err)};
+		auto err = error::errors.back();
+		err.set_location(this->m_location);
+		err.set_file(this->m_short_file);
+		return std::unexpected{const_cast<const error::gl_error&>(err)};
 	}
 	template <typename F, typename... Args>
-	std::expected<void, error<gl_error>> call(F f, Args... args)
+	std::expected<void, error::gl_error> call(F f, Args... args)
 	{
 		// Empty the queue
-		std::queue<error<gl_error>>().swap(errors);
+		std::queue<error::gl_error>().swap(error::errors);
 		// Call opengl function
 		f(args...);
 		// Check for errors in the queue
-		if (errors.empty())
+		if (error::errors.empty())
 		{
 			return {};
 		}
-		while (errors.size() > 1)
+		while (error::errors.size() > 1)
 		{
-			errors.pop();
+			error::errors.pop();
 		}
-		auto err = errors.back();
-		err.m_location = this->m_location;
+		auto err = error::errors.back();
+		err.set_location(this->m_location);
 		return std::unexpected{std::move(err)};
 	}
 
 private:
 	std::source_location m_location;
+	std::string m_short_file;
 };
 } // namespace moonstone::renderer

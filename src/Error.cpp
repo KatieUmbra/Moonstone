@@ -1,17 +1,20 @@
 module;
 
+#include <concepts>
 #include <cstdint>
 #include <expected>
+#include <format>
 #include <glad/glad.h>
+#include <print>
 #include <queue>
 #include <source_location>
-#include <stdexcept>
 #include <string>
 #include <string_view>
+#include <utility>
 
 export module moonstone:error;
 
-namespace moonstone
+namespace moonstone::error
 {
 void GLAPIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id,
 									GLenum severity, GLsizei length,
@@ -19,80 +22,111 @@ void GLAPIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id,
 									const void* userParam);
 }
 
-export namespace moonstone
+export namespace moonstone::error
 {
+void init()
+{
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	glDebugMessageCallback(gl_message_callback, nullptr);
+	GLuint unusedIds = 0;
+	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0,
+						  &unusedIds, 1U);
+}
+template <typename T>
+concept is_error = requires(T v) {
+	{ v.set_location(std::source_location()) };
+	{ v.set_file(std::string()) };
+	{ v.get_location() } -> std::same_as<std::source_location>;
+	{ v.format() } -> std::same_as<std::string>;
+};
+struct shader_error
+{
+	std::source_location location;
+	std::string message;
+	shader_error(std::source_location l = std::source_location::current(),
+				 std::string message = "")
+		: location(l), message(std::move(message))
+	{
+	}
+	void set_location(std::source_location loc)
+	{
+		this->location = loc;
+	}
+	void set_file(std::string)
+	{
+	}
+	std::source_location get_location()
+	{
+		return this->get_location();
+	}
+	std::string format()
+	{
+		return std::format("[{}:{}][Shader]: {}", location.file_name(),
+						   location.line(), message);
+	}
+};
 struct gl_error
 {
+	std::source_location location;
+	std::string file;
 	std::string_view source;
 	std::string_view type;
 	std::uint32_t id;
 	std::string_view severity;
-} __attribute__((packed, aligned(64)));
+	std::string message;
 
-enum kind
-{
-	OpenGL
-};
-
-template <typename T = void> class error
-{
-public:
-	kind m_kind;
-	std::source_location m_location;
-	std::string m_message;
-	T m_data;
-	error(kind kind, std::source_location location, std::string message, T data)
-		: m_kind(kind), m_location(location), m_message(std::move(message)),
-		  m_data(std::move(data))
+	gl_error(std::string_view source, std::string file, std::string_view type,
+			 std::uint32_t id, std::string_view severity, std::string message)
+		: source(source), file(std::move(file)), type(type), id(id),
+		  severity(severity), message(std::move(message))
 	{
 	}
 
-	~error() = default;
-
-	static void init()
+	[[nodiscard]] std::string format() const
 	{
-		glEnable(GL_DEBUG_OUTPUT);
-		glDebugMessageCallback(gl_message_callback, nullptr);
+		return std::format("[{}:{}][{};{};{}][{}]: {}", location.file_name(),
+						   location.line(), source, type, severity, id,
+						   message);
 	};
-
-	template <typename V> static error<T> from(const T& t)
+	void set_location(std::source_location location)
 	{
-		throw std::runtime_error{
-			"Invalid usage of function moonstone::error::from"};
-	};
-
-	template <> error<gl_error> from<gl_error>(const gl_error& t)
+		this->location = location;
+	}
+	void set_file(std::string file)
 	{
-		return error{kind::OpenGL, std::source_location::current(), "", t};
-	};
-	error(const error&) = default;
-	error(error&&) = default;
-	error& operator=(const error&) = delete;
-	error& operator=(error&&) = delete;
-};
-template <typename T = void, typename E = gl_error>
-using result = std::expected<T, error<E>>;
-} // namespace moonstone
+	}
+	std::source_location get_location()
+	{
+		return this->location;
+	}
 
-namespace moonstone
+	gl_error(const gl_error&) = default;
+	gl_error(gl_error&&) = default;
+	gl_error& operator=(const gl_error&) = default;
+	gl_error& operator=(gl_error&&) = default;
+} __attribute__((packed, aligned(128)));
+template <typename T = void, is_error E = gl_error>
+using result = std::expected<T, E>;
+} // namespace moonstone::error
+
+namespace moonstone::error
 {
-std::queue<error<gl_error>> errors{};
+std::queue<gl_error> errors{};
 void GLAPIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id,
 									GLenum severity, GLsizei length,
 									const GLchar* message,
 									const void* userParam)
 {
-	const char* n_source;
-	const char* n_type;
-	const char* n_severity;
-	switch (type)
+	const char* n_source{""};
+	const char* n_type{""};
+	const char* n_severity{""};
+	if (type == GL_DEBUG_TYPE_ERROR)
 	{
-	case GL_DEBUG_TYPE_ERROR:
 		n_type = "ERROR";
-		break;
-	default:
-		return;
-		break;
+	}
+	else
+	{
+		n_type = "OTHER";
 	}
 	switch (source)
 	{
@@ -134,11 +168,8 @@ void GLAPIENTRY gl_message_callback(GLenum source, GLenum type, GLuint id,
 		n_severity = "OTHER";
 		break;
 	}
-	error<gl_error> err =
-		error<gl_error>::from<gl_error>(gl_error{.source = {n_source},
-												 .type = {n_type},
-												 .id = id,
-												 .severity = {n_severity}});
-	err.m_message = message;
+	gl_error err =
+		gl_error{{n_source}, {}, {n_type}, id, {n_severity}, message};
+	errors.emplace(err);
 }
-} // namespace moonstone
+} // namespace moonstone::error

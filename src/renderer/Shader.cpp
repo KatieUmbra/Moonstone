@@ -1,17 +1,18 @@
 module;
 
 #define GLFW_INCLUDE_NONE
-#include "Assert.hpp"
 #include "Try.hpp"
 #include "glad/glad.h"
 #include <cstdint>
-#include <expected>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <print>
+#include <source_location>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 export module moonstone:shader;
 
@@ -28,8 +29,14 @@ class shader
 	std::string m_fs_file_path;
 	std::unordered_map<std::string, int> m_uniform_location_cache;
 
+	shader(std::string vs_path, std::string fs_path, std::uint32_t id)
+		: m_fs_file_path{std::move(fs_path)},
+		  m_vs_file_path{std::move(vs_path)}, m_renderer_id{id}
+	{
+	}
+
 	auto get_uniform_location(const std::string& name)
-		-> moonstone::result<std::uint32_t>
+		-> error::result<std::uint32_t>
 	{
 		if (this->m_uniform_location_cache.find(name) !=
 			this->m_uniform_location_cache.end())
@@ -37,14 +44,15 @@ class shader
 			return this->m_uniform_location_cache[name];
 		}
 
-		std::uint32_t location = Try(gl().call_returning<std::uint32_t>(
+		const std::uint32_t location = Try(gl().call_returning<std::uint32_t>(
 			glGetUniformLocation, this->m_renderer_id, name.c_str()));
 
 		if (location == -1)
 		{
-			std::cerr << "[" << __FILE__ << ':' << __LINE__
-					  << "][OpenGL][WARN]: uniform " << name
-					  << " doesn't exist!" << std::endl;
+			auto location = std::source_location::current();
+			std::println(stderr,
+						 "[{}:{}][OpenGL][WARN]: uniform {} doesn't exist!",
+						 location.file_name(), location.line(), name);
 		}
 
 		this->m_uniform_location_cache[name] = location;
@@ -52,91 +60,105 @@ class shader
 	}
 	[[nodiscard]] static auto create_shader(
 		const std::string& vertex_shader_file,
-		const std::string& fragment_shader_file) -> unsigned int
+		const std::string& fragment_shader_file) -> error::result<std::uint32_t>
 	{
 
 		auto vertex_shader = read_shader_file(vertex_shader_file);
 
 		auto fragment_shader = read_shader_file(fragment_shader_file);
 
-		GL_CALL(auto program = glCreateProgram())
-		auto vs = compile_shader(vertex_shader, GL_VERTEX_SHADER);
-		auto fs = compile_shader(fragment_shader, GL_FRAGMENT_SHADER);
+		auto program = Try(gl().call_returning<std::uint32_t>(glCreateProgram));
+		auto vs = Try(compile_shader(vertex_shader, GL_VERTEX_SHADER));
+		auto fs = Try(compile_shader(fragment_shader, GL_FRAGMENT_SHADER));
 
-		GL_CALL(glAttachShader(program, vs))
-		GL_CALL(glAttachShader(program, fs))
-		GL_CALL(glLinkProgram(program))
-		GL_CALL(glValidateProgram(program))
-		GL_CALL(glDeleteShader(vs))
-		GL_CALL(glDeleteShader(fs))
+		Try(gl().call(glAttachShader, program, vs));
+		Try(gl().call(glAttachShader, program, fs));
+		Try(gl().call(glLinkProgram, program));
+		Try(gl().call(glValidateProgram, program));
+		Try(gl().call(glDeleteShader, vs));
+		Try(gl().call(glDeleteShader, fs));
 
 		return program;
 	}
 	[[nodiscard]] static auto compile_shader(const std::string& source,
-											 unsigned int type) -> unsigned int
+											 unsigned int type)
+		-> error::result<std::uint32_t>
 	{
 
-		GL_CALL(unsigned int id = glCreateShader(type))
+		std::uint32_t id =
+			Try(gl().call_returning<std::uint32_t>(glCreateShader, type));
 		const char* src = source.c_str();
-		GL_CALL(glShaderSource(id, 1, &src, nullptr))
-		GL_CALL(glCompileShader(id))
-
-		int result;
-		GL_CALL(glGetShaderiv(id, GL_COMPILE_STATUS, &result))
+		Try(gl().call(glShaderSource, id, 1, &src, nullptr));
+		Try(gl().call(glCompileShader, id));
+		std::int32_t result{};
+		Try(gl().call(glGetShaderiv, id, GL_COMPILE_STATUS, &result));
 		if (result == GL_FALSE)
 		{
-			int length;
-			GL_CALL(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length))
+			int length{};
+			Try(gl().call(glGetShaderiv, id, GL_INFO_LOG_LENGTH, &length));
 			char* message = static_cast<char*>(alloca(length * sizeof(char)));
-			GL_CALL(glGetShaderInfoLog(id, length, &length, message))
-			std::cerr << "Failed to compile "
-					  << (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
-					  << " shader!" << '\n';
-			std::cerr << message << '\n';
-			GL_CALL(glDeleteShader(id))
-			return 0;
+			Try(gl().call(glGetShaderInfoLog, id, length, &length, message));
+			std::println(stderr, "Failed to compile {} shader: {}",
+						 (type == GL_VERTEX_SHADER ? "vertex" : "fragment"),
+						 message);
+			Try(gl().call(glDeleteShader, id));
+			return std::unexpected(error::gl_error{
+				"SHADER COMPILER", {}, "ERROR", 0, "HIGH", message});
 		}
-
 		return id;
 	}
 
 public:
-	shader(const std::string& vs_path, const std::string& fs_path)
-		: m_fs_file_path{fs_path}, m_vs_file_path{vs_path},
-		  m_renderer_id{create_shader(vs_path, fs_path)}
-	{
-	}
 	~shader()
 	{
-		GL_CALL(glDeleteProgram(m_renderer_id));
+		const auto& result = gl().call(glDeleteProgram, m_renderer_id);
+		if (!result.has_value())
+		{
+			std::println(stderr, "{}", result.error().format());
+			__builtin_debugtrap();
+		}
+	}
+	shader(const std::string& vs_path, const std::string& fs_path)
+	{
+		const auto& result = create_shader(vs_path, fs_path);
+		if (!result.has_value())
+		{
+			std::println(stderr, "{}", result.error().format());
+			__builtin_debugtrap();
+		}
+		this->m_vs_file_path = vs_path;
+		this->m_fs_file_path = fs_path;
+		this->m_renderer_id = result.value();
 	}
 
-	void bind() const
+	[[nodiscard]] error::result<> bind() const
 	{
-		GL_CALL(glUseProgram(this->m_renderer_id));
+		Try(gl().call(glUseProgram, this->m_renderer_id));
+		return {};
 	}
-	static void unbind()
+	static error::result<> unbind()
 	{
-		GL_CALL(glUseProgram(0));
+		Try(gl().call(glUseProgram, 0));
+		return {};
 	}
 
-	std::expected<void, error<gl_error>> setUniformVecf4(
-		const std::string& name, glm::vec4 data)
+	auto setUniformVecf4(const std::string& name, glm::vec4 data)
+		-> error::result<>
 	{
 		std::uint32_t location = Try(this->get_uniform_location(name));
 		Try(gl().call(glUniform4f, location, data.x, data.y, data.z, data.w));
 		return {};
 	}
-	std::expected<void, error<gl_error>> setUniformVecf3(
-		const std::string& name, glm::vec3 data)
+	auto setUniformVecf3(const std::string& name, glm::vec3 data)
+		-> error::result<>
 	{
 		std::uint32_t location = Try(this->get_uniform_location(name));
 		Try(gl().call(glUniform3f, location, data.x, data.y, data.z));
 		return {};
 	}
 
-	std::expected<void, error<gl_error>> setUniformMatf4(
-		const std::string& name, const glm::mat4& data)
+	auto setUniformMatf4(const std::string& name, const glm::mat4& data)
+		-> error::result<>
 	{
 		std::uint32_t location = Try(this->get_uniform_location(name));
 		Try(gl().call(glUniformMatrix4fv, location, 1, GL_FALSE,
@@ -144,12 +166,16 @@ public:
 		return {};
 	}
 
-	std::expected<void, error<gl_error>> setUniformInt1(const std::string& name,
-														int data)
+	auto setUniformInt1(const std::string& name, int data) -> error::result<>
 	{
 		std::uint32_t location = Try(this->get_uniform_location(name));
 		Try(gl().call(glUniform1i, location, data));
 		return {};
 	}
+
+	shader(const shader&) = delete;
+	shader(shader&&) = default;
+	shader& operator=(const shader&) = delete;
+	shader& operator=(shader&&) = default;
 };
 } // namespace moonstone::renderer

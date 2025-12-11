@@ -1,8 +1,6 @@
 module;
 
 #define GLFW_INCLUDE_NONE
-#include <array>
-#include <cstdint>
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -10,6 +8,7 @@ module;
 #include <glm/glm.hpp>
 #include <imgui.h>
 #include <print>
+#include <stdexcept>
 #include <string>
 
 export module scenes:texture;
@@ -39,9 +38,10 @@ public:
 		: quad1{{}, {200.0F, 200.0F}, {0.0F, 0.0F}, 0, vbo, ibo},
 		  quad2{{}, {50.0F, 50.0F}, {0.5F, 0.5F}, 1, vbo, ibo},
 		  quad3{{}, {300.0F, 300.0F}, {0.0F, 0.0F}, 2, vbo, ibo},
-		  shader{"shader.vert", "shader.frag"}, renderer{renderer},
-		  tex_arr({"texarr1.png", "texarr2.png", "texarr3.png"})
+		  tex_arr({"texarr1.png", "texarr2.png", "texarr3.png"}),
+		  renderer(renderer), shader{"shader.vert", "shader.frag"}
 	{
+		error::init();
 		renderer::vertex_element::register_layout(blo);
 		vao.add_buffer(vbo, blo);
 		vao.bind();
@@ -74,10 +74,9 @@ public:
 		if (!res.has_value())
 		{
 			auto err = res.error();
-			std::println("Message: {}", err.m_message);
+			std::println(stderr, "{}", err.format());
 		}
 		renderer.draw(vao, ibo, shader);
-		GL_INVALID_VALUE;
 	};
 	void on_imgui_render() override
 	{
