@@ -5,8 +5,8 @@ layout(location = 0) out vec4 color;
 uniform sampler2D u_texture;
 uniform sampler2DArray u_textureArray;
 
-in vec2 v_texture_coordinate;
-flat in uint v_texture_layer;
+layout(location = 0) in vec2 v_texture_coordinate;
+layout(location = 1) flat in uint v_texture_layer;
 
 void main()
 {
