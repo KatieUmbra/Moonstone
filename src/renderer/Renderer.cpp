@@ -22,6 +22,9 @@ class renderer
 public:
 	renderer(window& wd) : m_window{wd}
 	{
+#ifdef _DEBUG
+		GL_CALL(glEnable(GL_DEBUG_OUTPUT));
+#endif
 	}
 	void draw(const vertex_array& vao, index_buffer& ib, const shader& shader)
 	{

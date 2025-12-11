@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 4.0.0)
 PROJECT(moonstone LANGUAGES CXX)
 
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
@@ -28,6 +28,7 @@ SET(MOONSTONE_SOURCES
     ./src/Window.cpp
     ./src/Utility.cpp
     ./src/Logging.cpp
+    ./src/Error.cpp
     # External Module
     ./src/external/ImGui.cpp
     # Renderer Module
@@ -40,6 +41,7 @@ SET(MOONSTONE_SOURCES
     ./src/renderer/Texture.cpp
     ./src/renderer/Renderer.cpp
     ./src/renderer/TextureArray.cpp
+    ./src/renderer/Call.cpp
     # Engine Module
     ./src/engine/quad.cpp
     # Scenes Module

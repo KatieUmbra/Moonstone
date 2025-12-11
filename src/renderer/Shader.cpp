@@ -2,7 +2,10 @@ module;
 
 #define GLFW_INCLUDE_NONE
 #include "Assert.hpp"
+#include "Try.hpp"
 #include "glad/glad.h"
+#include <cstdint>
+#include <expected>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
@@ -13,6 +16,8 @@ module;
 export module moonstone:shader;
 
 import :utility;
+import :call;
+import :error;
 
 export namespace moonstone::renderer
 {
@@ -23,7 +28,8 @@ class shader
 	std::string m_fs_file_path;
 	std::unordered_map<std::string, int> m_uniform_location_cache;
 
-	auto get_uniform_location(const std::string& name) -> unsigned int
+	auto get_uniform_location(const std::string& name)
+		-> std::expected<std::uint32_t, error<gl_error>>
 	{
 		if (this->m_uniform_location_cache.find(name) !=
 			this->m_uniform_location_cache.end())
@@ -31,8 +37,8 @@ class shader
 			return this->m_uniform_location_cache[name];
 		}
 
-		GL_CALL(auto location =
-					glGetUniformLocation(this->m_renderer_id, name.c_str()));
+		std::uint32_t location = Try(gl().call_returning<std::uint32_t>(
+			glGetUniformLocation, this->m_renderer_id, name.c_str()));
 
 		if (location == -1)
 		{
@@ -109,33 +115,41 @@ public:
 	{
 		GL_CALL(glUseProgram(this->m_renderer_id));
 	}
-	void unbind() const
+	static void unbind()
 	{
 		GL_CALL(glUseProgram(0));
 	}
 
-	void setUniformVecf4(const std::string& name, glm::vec4 data)
+	std::expected<void, error<gl_error>> setUniformVecf4(
+		const std::string& name, glm::vec4 data)
 	{
-		auto location = this->get_uniform_location(name);
-		GL_CALL(glUniform4f(location, data.x, data.y, data.z, data.w));
+		std::uint32_t location = Try(this->get_uniform_location(name));
+		Try(gl().call(glUniform4f, location, data.x, data.y, data.z, data.w));
+		return {};
 	}
-	void setUniformVecf3(const std::string& name, glm::vec3 data)
+	std::expected<void, error<gl_error>> setUniformVecf3(
+		const std::string& name, glm::vec3 data)
 	{
-		auto location = this->get_uniform_location(name);
-		GL_CALL(glUniform3f(location, data.x, data.y, data.z));
-	}
-
-	void setUniformMatf4(const std::string& name, const glm::mat4& data)
-	{
-		auto location = this->get_uniform_location(name);
-		GL_CALL(
-			glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(data)));
+		std::uint32_t location = Try(this->get_uniform_location(name));
+		Try(gl().call(glUniform3f, location, data.x, data.y, data.z));
+		return {};
 	}
 
-	void setUniformInt1(const std::string& name, int data)
+	std::expected<void, error<gl_error>> setUniformMatf4(
+		const std::string& name, const glm::mat4& data)
 	{
-		auto location = this->get_uniform_location(name);
-		GL_CALL(glUniform1i(location, data));
+		std::uint32_t location = Try(this->get_uniform_location(name));
+		Try(gl().call(glUniformMatrix4fv, location, 1, GL_FALSE,
+					  glm::value_ptr(data)));
+		return {};
+	}
+
+	std::expected<void, error<gl_error>> setUniformInt1(const std::string& name,
+														int data)
+	{
+		std::uint32_t location = Try(this->get_uniform_location(name));
+		Try(gl().call(glUniform1i, location, data));
+		return {};
 	}
 };
 } // namespace moonstone::renderer

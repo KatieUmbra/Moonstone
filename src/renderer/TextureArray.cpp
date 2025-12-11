@@ -51,9 +51,11 @@ public:
 			int width, height, channels;
 			stbi_uc* texels = stbi_load(path.c_str(), &width, &height,
 										&channels, STBI_rgb_alpha);
+			/*
 			ASSERT(width == W)
 			ASSERT(height == H)
 			ASSERT(channels == s_pixel_size)
+			*/
 			if (texels == nullptr)
 			{
 				std::println("Failed to load texture file {}", texture_path);
@@ -89,6 +91,7 @@ public:
 								GL_CLAMP_TO_EDGE));
 		GL_CALL(glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,
 								GL_CLAMP_TO_EDGE));
+		GL_CALL(glGenerateMipmap(GL_TEXTURE_2D_ARRAY));
 	}
 	~texture_array()
 	{

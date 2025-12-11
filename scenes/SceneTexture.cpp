@@ -3,6 +3,7 @@ module;
 #define GLFW_INCLUDE_NONE
 #include <array>
 #include <cstdint>
+#include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/vector_float2.hpp>
@@ -28,29 +29,25 @@ class texture : public moonstone::scene
 	renderer::buffer_layout blo{};
 	moonstone::engine::quad quad1, quad2, quad3;
 	renderer::shader shader;
-	renderer::texture tex;
 	renderer::texture_array<256, 256> tex_arr;
 	renderer::renderer& renderer;
 	glm::vec2 new_pos1{}, new_pos2{}, new_pos3{};
 
 public:
 	explicit texture(renderer::renderer& renderer)
-		: quad1{{}, {200.0F, 200.0F}, {0.0F, 0.0F}, 2, vbo, ibo},
+		: quad1{{}, {200.0F, 200.0F}, {0.0F, 0.0F}, 0, vbo, ibo},
 		  quad2{{}, {50.0F, 50.0F}, {0.5F, 0.5F}, 1, vbo, ibo},
-		  quad3{{}, {300.0F, 300.0F}, {0.0F, 0.0F}, 0, vbo, ibo},
-		  shader{"shader.vert", "shader.frag"}, tex{"texture.png"},
-		  renderer{renderer},
-		  tex_arr({"texarr2.png", "texarr3.png", "texarr1.png"})
+		  quad3{{}, {300.0F, 300.0F}, {0.0F, 0.0F}, 2, vbo, ibo},
+		  shader{"shader.vert", "shader.frag"}, renderer{renderer},
+		  tex_arr({"texarr1.png", "texarr2.png", "texarr3.png"})
 	{
 		renderer::vertex_element::register_layout(blo);
 		vao.add_buffer(vbo, blo);
 		vao.bind();
 		ibo.bind();
 		shader.bind();
-		tex.bind();
 		tex_arr.bind();
 
-		// shader.setUniformInt1("u_texture", 0);
 		shader.setUniformInt1("u_textureArray", 1);
 
 		moonstone::renderer::vertex_array::unbind();
@@ -74,6 +71,7 @@ public:
 		glm::mat4 mvp = projection * view * model;
 		shader.setUniformMatf4("u_model_view_projection", mvp);
 		renderer.draw(vao, ibo, shader);
+		GL_INVALID_VALUE;
 	};
 	void on_imgui_render() override
 	{

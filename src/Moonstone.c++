@@ -4,6 +4,7 @@ export import :scene;
 export import :window;
 export import :utility;
 export import :logging;
+export import :error;
 // partitions
 export import external;
 // renderer stuff
@@ -16,5 +17,6 @@ export import :vertex_array;
 export import :index_buffer;
 export import :buffer_layout;
 export import :renderer;
+export import :call;
 // engine stuff
 export import :quad;
