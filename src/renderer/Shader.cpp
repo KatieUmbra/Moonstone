@@ -29,7 +29,7 @@ class shader
 	std::unordered_map<std::string, int> m_uniform_location_cache;
 
 	auto get_uniform_location(const std::string& name)
-		-> std::expected<std::uint32_t, error<gl_error>>
+		-> moonstone::result<std::uint32_t>
 	{
 		if (this->m_uniform_location_cache.find(name) !=
 			this->m_uniform_location_cache.end())

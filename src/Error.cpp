@@ -1,6 +1,7 @@
 module;
 
 #include <cstdint>
+#include <expected>
 #include <glad/glad.h>
 #include <queue>
 #include <source_location>
@@ -69,6 +70,8 @@ public:
 	error& operator=(const error&) = delete;
 	error& operator=(error&&) = delete;
 };
+template <typename T = void, typename E = gl_error>
+using result = std::expected<T, error<E>>;
 } // namespace moonstone
 
 namespace moonstone

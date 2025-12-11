@@ -9,6 +9,7 @@ module;
 #include <glm/ext/vector_float2.hpp>
 #include <glm/glm.hpp>
 #include <imgui.h>
+#include <print>
 #include <string>
 
 export module scenes:texture;
@@ -69,7 +70,12 @@ public:
 		shader.bind();
 		glm::mat4 model = glm::mat4{1.0F};
 		glm::mat4 mvp = projection * view * model;
-		shader.setUniformMatf4("u_model_view_projection", mvp);
+		auto res = shader.setUniformMatf4("u_model_view_projection", mvp);
+		if (!res.has_value())
+		{
+			auto err = res.error();
+			std::println("Message: {}", err.m_message);
+		}
 		renderer.draw(vao, ibo, shader);
 		GL_INVALID_VALUE;
 	};
