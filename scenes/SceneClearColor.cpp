@@ -2,6 +2,7 @@ module;
 
 #define GLFW_INCLUDE_NONE
 #include "Assert.hpp"
+#include <Try.hpp>
 #include <array>
 #include <imgui.h>
 
@@ -17,22 +18,29 @@ class clear_color : public scene
 
 public:
 	clear_color() : m_clear_color{1.0F, 0.8F, 0.8F, 1.0F} {};
+	explicit clear_color(std::array<float, 4> m_clear_color)
+		: m_clear_color(m_clear_color)
+	{
+	}
 	~clear_color() override = default;
 
-	void on_update(float delta_time) override {};
-	void on_render() override
+	error::result<> on_update(float delta_time) override
 	{
-		GL_CALL(glClearColor(m_clear_color[0], m_clear_color[1], m_clear_color[2], m_clear_color[3]));
-		GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
-	}
-	void on_imgui_render() override
-	{
-		ImGui::ColorEdit4("Clear Color", reinterpret_cast<float*>(&m_clear_color));
-	}
-	bool operator==(const scene& other) override
-	{
-		return this->get_name() == other.get_name();
+		return {};
 	};
+	error::result<> on_render() override
+	{
+		Try(renderer::gl().call(glClearColor, m_clear_color[0],
+								m_clear_color[1], m_clear_color[2],
+								m_clear_color[3]));
+		Try(renderer::gl().call(glClear, GL_COLOR_BUFFER_BIT));
+		return {};
+	}
+	error::result<> on_imgui_render() override
+	{
+		ImGui::ColorEdit4("Clear Color", m_clear_color.data());
+		return {};
+	}
 	[[nodiscard]] std::string get_name() const override
 	{
 		return "Clear color.";

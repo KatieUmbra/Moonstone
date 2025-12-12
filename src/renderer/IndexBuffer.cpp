@@ -1,7 +1,8 @@
 module;
 
-#include "Assert.hpp"
+#include "Try.hpp"
 #include "glad/glad.h"
+#include <algorithm>
 #include <flat_map>
 #include <print>
 #include <ranges>
@@ -9,6 +10,9 @@ module;
 #include <tuple>
 
 export module moonstone:index_buffer;
+
+import :error;
+import :call;
 
 export namespace moonstone::renderer
 {
@@ -19,23 +23,39 @@ class index_buffer
 	std::uint32_t m_highest{0};
 	std::flat_map<std::uint32_t, std::uint32_t> m_indices;
 
+	error::result<> create()
+	{
+		Try(gl().call(glGenBuffers, 1, &this->m_renderer_id));
+		Try(gl().call(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER,
+					  this->m_renderer_id));
+		Try(gl().call(glBufferData, GL_ELEMENT_ARRAY_BUFFER,
+					  this->m_indices.size() & sizeof(std::uint32_t),
+					  this->m_indices.values().data(), GL_DYNAMIC_DRAW));
+		return {};
+	}
+
 public:
 	index_buffer()
 	{
-		GL_CALL(glGenBuffers(1, &this->m_renderer_id));
-		GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_renderer_id));
-		GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-							 this->m_indices.size() * sizeof(std::uint32_t),
-							 this->m_indices.values().data(), GL_DYNAMIC_DRAW));
+		auto err = this->create();
+		if (!err.has_value())
+		{
+			throw std::runtime_error(err.error().format());
+		}
 	}
 
 	~index_buffer()
 	{
-		GL_CALL(glDeleteBuffers(1, &this->m_renderer_id));
+		auto err = gl().call(glDeleteBuffers, 1, &this->m_renderer_id);
+		if (!err.has_value())
+		{
+			throw std::runtime_error(err.error().format());
+		}
 	}
 
 	template <std::size_t N>
-	std::array<std::uint32_t, N> insert(std::array<std::uint32_t, N> indices)
+	error::result<std::array<std::uint32_t, N>> insert(
+		std::array<std::uint32_t, N> indices)
 	{
 		std::array<std::uint32_t, N> returned{};
 		std::ranges::for_each(
@@ -43,14 +63,11 @@ public:
 			[this](std::tuple<std::uint32_t, std::uint32_t&> values) {
 				auto [index, returned] = values;
 				this->m_indices.insert({this->m_index_count, index});
-				if (index > this->m_highest)
-				{
-					this->m_highest = index;
-				}
+				this->m_highest = std::max(index, this->m_highest);
 				returned = this->m_index_count++;
 			});
-		this->update();
-		return returned;
+		Try(this->update());
+		return std::move(returned);
 	}
 
 	void replace(std::uint32_t index_id, std::uint32_t index)
@@ -66,40 +83,43 @@ public:
 		}
 	}
 
-	void update()
+	error::result<> update()
 	{
-		this->bind();
+		Try(this->bind());
 		std::int64_t old_size = 0;
-		GL_CALL(glGetBufferParameteri64v(GL_ELEMENT_ARRAY_BUFFER,
-										 GL_BUFFER_SIZE, &old_size));
+		Try(gl().call(glGetBufferParameteri64v, GL_ELEMENT_ARRAY_BUFFER,
+					  GL_BUFFER_SIZE, &old_size));
 		auto size = this->m_indices.size() * sizeof(std::uint32_t);
 		if (size > old_size)
 		{
-			GL_CALL(glBufferData(GL_ELEMENT_ARRAY_BUFFER, size,
-								 this->m_indices.values().data(),
-								 GL_DYNAMIC_DRAW));
+			Try(gl().call(glBufferData, GL_ELEMENT_ARRAY_BUFFER, size,
+						  this->m_indices.values().data(), GL_DYNAMIC_DRAW));
 		}
 		else
 		{
-			GL_CALL(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size,
-									this->m_indices.values().data()));
+			Try(gl().call(glBufferSubData, GL_ELEMENT_ARRAY_BUFFER, 0, size,
+						  this->m_indices.values().data()));
 		}
+		return {};
 	}
 
-	void bind() const
+	[[nodiscard]] error::result<> bind() const
 	{
-		GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->m_renderer_id));
+		Try(gl().call(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER,
+					  this->m_renderer_id));
+		return {};
 	}
 
-	static void unbind()
+	static error::result<> unbind()
 	{
-		GL_CALL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+		Try(gl().call(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER, 0));
+		return {};
 	}
 	std::uint32_t get_size()
 	{
 		return this->m_indices.size();
 	}
-	std::uint32_t get_highest()
+	[[nodiscard]] std::uint32_t get_highest() const
 	{
 		return this->m_highest;
 	}

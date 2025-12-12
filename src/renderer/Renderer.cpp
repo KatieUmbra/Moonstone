@@ -1,9 +1,11 @@
 module;
 
 #include "Assert.hpp"
+#include "Try.hpp"
 #include "glad/glad.h"
 #include "glfwpp/event.h"
 #include "glm/vec4.hpp"
+#include <glm/ext/vector_float4.hpp>
 
 export module moonstone:renderer;
 
@@ -11,6 +13,8 @@ import :window;
 import :shader;
 import :vertex_array;
 import :index_buffer;
+import :error;
+import :call;
 
 export namespace moonstone::renderer
 {
@@ -20,37 +24,39 @@ class renderer
 	window& m_window;
 
 public:
-	renderer(window& wd) : m_window{wd}
+	explicit renderer(window& wd) : m_window{wd}
 	{
 #ifdef _DEBUG
-		GL_CALL(glEnable(GL_DEBUG_OUTPUT));
+		auto err = gl().call(glEnable, GL_DEBUG_OUTPUT);
+		if (!err.has_value())
+		{
+			throw std::runtime_error(err.error().format());
+		}
 #endif
 	}
-	void draw(const vertex_array& vao, index_buffer& ib, const shader& shader)
+	static error::result<> draw(const vertex_array& vao, index_buffer& ib,
+								const shader& shader)
 	{
-		shader.bind();
-		vao.bind();
+		Try(shader.bind());
+		Try(vao.bind());
 		ib.bind();
-		GL_CALL(glDrawElements(GL_TRIANGLES, ib.get_size(), GL_UNSIGNED_INT,
-							   nullptr));
+		Try(gl().call(glDrawElements, GL_TRIANGLES, ib.get_size(),
+					  GL_UNSIGNED_INT, nullptr));
+		return {};
 	}
-	void clear() const
+	static error::result<> clear()
 	{
-		GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+		Try(gl().call(glClear, GL_COLOR_BUFFER_BIT));
+		return {};
 	}
-	void clear(float r, float g, float b, float a) const
+	static error::result<> clear(glm::vec4 color)
 	{
-		this->clear();
-		GL_CALL(glClearColor(r, g, b, a));
-	}
-	void clear(glm::vec4 color) const
-	{
-		this->clear();
-		GL_CALL(glClearColor(color.x, color.y, color.z, color.w));
+		Try(renderer::clear());
+		Try(gl().call(glClearColor, color.r, color.g, color.b, color.a));
+		return {};
 	}
 	void update_buffers()
 	{
-
 		glfw::pollEvents();
 		this->m_window.get_glfw_window().swapBuffers();
 	}

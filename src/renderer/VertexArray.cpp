@@ -1,14 +1,17 @@
 module;
 
-#include "Assert.hpp"
+#include "Try.hpp"
 #include "glad/glad.h"
 #include <cstddef>
 #include <cstdint>
+#include <stdexcept>
 
 export module moonstone:vertex_array;
 
 import :vertex_buffer;
 import :buffer_layout;
+import :error;
+import :call;
 
 export namespace moonstone::renderer
 {
@@ -19,16 +22,25 @@ class vertex_array
 public:
 	vertex_array()
 	{
-		GL_CALL(glGenVertexArrays(1, &this->m_renderer_id));
+		auto res = gl().call(glGenVertexArrays, 1, &this->m_renderer_id);
+		if (!res.has_value())
+		{
+			throw std::runtime_error(res.error().format().c_str());
+		}
 	}
 	~vertex_array()
 	{
-		GL_CALL(glDeleteVertexArrays(1, &this->m_renderer_id));
+		auto res = gl().call(glDeleteVertexArrays, 1, &this->m_renderer_id);
+		if (!res.has_value())
+		{
+			throw std::runtime_error(res.error().format().c_str());
+		}
 	}
-	void add_buffer(const vertex_buffer& vb, const buffer_layout& bl) const
+	[[nodiscard]] error::result<> add_buffer(const vertex_buffer& vb,
+											 const buffer_layout& bl) const
 	{
-		this->bind();
-		vb.bind();
+		Try(this->bind());
+		Try(vb.bind());
 		const auto& elements = bl.get_elements();
 		std::uintptr_t offset = 0;
 #pragma unroll 4
@@ -37,22 +49,24 @@ public:
 			const auto& element = elements[i];
 			const auto stride = bl.get_stride();
 			const auto size = element.count;
-			GL_CALL(glEnableVertexAttribArray(i));
-			GL_CALL(glVertexAttribPointer(
-						i, size, element.type,
-						(element.normalized ? GL_TRUE : GL_FALSE), stride,
-						reinterpret_cast<const void*>(offset));)
+			Try(gl().call(glEnableVertexAttribArray, i));
+			Try(gl().call(glVertexAttribPointer, i, size, element.type,
+						  (element.normalized ? GL_TRUE : GL_FALSE), stride,
+						  reinterpret_cast<const void*>(offset)));
 			offset += static_cast<std::uintptr_t>(element.count) *
 					  buffer_element::get_size_of_type(element.type);
 		}
+		return {};
 	}
-	void bind() const
+	[[nodiscard]] error::result<> bind() const
 	{
-		GL_CALL(glBindVertexArray(this->m_renderer_id));
+		Try(gl().call(glBindVertexArray, this->m_renderer_id));
+		return {};
 	}
-	static void unbind()
+	static error::result<> unbind()
 	{
-		GL_CALL(glBindVertexArray(0));
+		Try(gl().call(glBindVertexArray, 0));
+		return {};
 	}
 	vertex_array(const vertex_array&) = delete;
 	vertex_array(vertex_array&&) = delete;

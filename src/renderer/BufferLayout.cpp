@@ -14,8 +14,8 @@ export namespace moonstone::renderer
 {
 struct buffer_element
 {
-	unsigned int type;
-	unsigned int count;
+	std::uint32_t type;
+	std::uint32_t count;
 	bool normalized;
 
 	static auto get_size_of_type(unsigned int type) -> unsigned int

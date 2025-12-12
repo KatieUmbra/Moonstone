@@ -1,6 +1,7 @@
 module;
 
 #define GLFW_INCLUDE_NONE
+#include "Try.hpp"
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -15,23 +16,48 @@ export module scenes:texture;
 
 import moonstone;
 
-static glm::mat4 view = glm::translate(glm::mat4{1.0F}, glm::vec3(0, 0, 0));
-static glm::mat4 projection =
-	glm::ortho(0.0f, 800.0f, 0.0f, 800.0f, -1.0f, 1.0f);
+constexpr glm::mat4 view = glm::translate(glm::mat4{1.0F}, glm::vec3(0, 0, 0));
+static const glm::mat4 projection =
+	glm::ortho(0.0F, 800.0F, 0.0F, 800.0F, -1.0F, 1.0F);
 
 export namespace moonstone::scenes
 {
 class texture : public moonstone::scene
 {
 	renderer::vertex_array vao;
-	renderer::index_buffer ibo{};
-	renderer::vertex_buffer vbo{};
-	renderer::buffer_layout blo{};
+	renderer::index_buffer ibo;
+	renderer::vertex_buffer vbo;
+	renderer::buffer_layout blo;
 	moonstone::engine::quad quad1, quad2, quad3;
 	renderer::shader shader;
 	renderer::texture_array<256, 256> tex_arr;
 	renderer::renderer& renderer;
 	glm::vec2 new_pos1{}, new_pos2{}, new_pos3{};
+
+	error::result<> create()
+	{
+		Try(vao.add_buffer(vbo, blo));
+		Try(vao.bind());
+		Try(ibo.bind());
+		Try(shader.bind());
+		Try(tex_arr.bind());
+
+		Try(shader.setUniformInt1("u_textureArray", 1));
+
+		Try(moonstone::renderer::vertex_array::unbind());
+		Try(ibo.unbind());
+		Try(shader.unbind());
+		return {};
+	}
+
+	error::result<> destroy()
+	{
+		Try(moonstone::renderer::vertex_array::unbind());
+		Try(moonstone::renderer::vertex_buffer::unbind());
+		Try(ibo.unbind());
+		Try(shader.unbind());
+		return {};
+	}
 
 public:
 	explicit texture(renderer::renderer& renderer)
@@ -43,42 +69,31 @@ public:
 	{
 		error::init();
 		renderer::vertex_element::register_layout(blo);
-		vao.add_buffer(vbo, blo);
-		vao.bind();
-		ibo.bind();
-		shader.bind();
-		tex_arr.bind();
-
-		shader.setUniformInt1("u_textureArray", 1);
-
-		moonstone::renderer::vertex_array::unbind();
-		ibo.unbind();
-		shader.unbind();
+		auto err = this->create();
+		if (!err.has_value())
+		{
+			throw std::runtime_error(err.error().format());
+		}
 	}
-	~texture()
+	~texture() override = default;
+	error::result<> on_update(float delta_time) override
 	{
-		moonstone::renderer::vertex_array::unbind();
-		moonstone::renderer::vertex_buffer::unbind();
-		ibo.unbind();
-		shader.unbind();
+		return {};
 	}
-	void on_update(float delta_time) override
+	error::result<> on_render() override
 	{
-	}
-	void on_render() override
-	{
-		shader.bind();
+		Try(shader.bind());
 		glm::mat4 model = glm::mat4{1.0F};
 		glm::mat4 mvp = projection * view * model;
-		auto res = shader.setUniformMatf4("u_model_view_projection", mvp);
-		if (!res.has_value())
+		auto err = shader.setUniformMatf4("u_model_view_projection", mvp);
+		if (!err.has_value())
 		{
-			auto err = res.error();
-			std::println(stderr, "{}", err.format());
+			std::println(stderr, "{}", err.error().format());
 		}
-		renderer.draw(vao, ibo, shader);
+		Try(renderer.draw(vao, ibo, shader));
+		return {};
 	};
-	void on_imgui_render() override
+	error::result<> on_imgui_render() override
 	{
 		ImGui::SliderFloat2("Position1", &this->new_pos1.x, 0.0F, 500.0F);
 		ImGui::SliderFloat2("Position2", &this->new_pos2.x, 0.0F, 500.0F);
@@ -86,7 +101,8 @@ public:
 		this->quad1.set_position(this->new_pos1);
 		this->quad2.set_position(this->new_pos2);
 		this->quad3.set_position(this->new_pos3);
-		this->vbo.update();
+		Try(this->vbo.update());
+		return {};
 	}
 	[[nodiscard]] std::string get_name() const override
 	{

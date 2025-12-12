@@ -1,16 +1,19 @@
 module;
 
+#include "Try.hpp"
 #include <algorithm>
 #include <array>
 #include <cstddef>
 #include <glm/glm.hpp>
 #include <ranges>
+#include <stdexcept>
 
 export module moonstone:quad;
 
 import :vertex_element;
 import :vertex_buffer;
 import :index_buffer;
+import :error;
 
 export namespace moonstone::engine
 {
@@ -40,10 +43,27 @@ class quad
 									-this->m_size.y * m_anchor.y};
 		this->m_quad_vertices[3] = {this->m_size.x * i_anchor.x,
 									this->m_size.y * i_anchor.y};
-		std::ranges::for_each(this->m_quad_vertices, [this](auto& it) {
-			// std::println("Vertex update!");
-			it += this->m_position;
-		});
+		std::ranges::for_each(this->m_quad_vertices,
+							  [this](auto& it) { it += this->m_position; });
+	}
+
+	error::result<> create()
+	{
+		this->update_quad_vertices();
+		// Generates the vertex buffer vertices
+		for (auto it : std::views::zip(this->m_buffer_vertices,
+									   this->m_quad_vertices, quad::m_quad_uvs))
+		{
+			auto& [buffer_vertex, quad_vertex, quad_uv] = it;
+			buffer_vertex = Try(this->m_vbo.insert({quad_vertex, quad_uv, 0}));
+		}
+		auto buffer_size = this->m_ibo.get_highest();
+		auto current_index = (buffer_size < 1) ? 0 : buffer_size + 1;
+		const std::array<std::uint32_t, 6> indices{
+			current_index,	   current_index + 1, current_index + 2,
+			current_index + 2, current_index + 3, current_index};
+		this->m_quad_indices = Try(this->m_ibo.insert(indices));
+		return {};
 	}
 
 public:
@@ -54,21 +74,11 @@ public:
 		  m_anchor(glm::clamp(anchor, 0.0F, 1.0F)), m_texture(texture),
 		  m_vbo(vbo), m_ibo(ibo)
 	{
-		this->update_quad_vertices();
-		// Generates the vertex buffer vertices
-		std::ranges::for_each(
-			(std::views::zip(this->m_buffer_vertices, this->m_quad_vertices,
-							 quad::m_quad_uvs)),
-			[this](auto it) {
-				auto& [buffer_vertex, quad_vertex, quad_uv] = it;
-				buffer_vertex = this->m_vbo.insert({quad_vertex, quad_uv, 0});
-			});
-		auto buffer_size = this->m_ibo.get_highest();
-		auto current_index = (buffer_size < 1) ? 0 : buffer_size + 1;
-		const std::array<std::uint32_t, 6> indices{
-			current_index,	   current_index + 1, current_index + 2,
-			current_index + 2, current_index + 3, current_index};
-		this->m_quad_indices = this->m_ibo.insert(indices);
+		auto err = this->create();
+		if (!err.has_value())
+		{
+			throw std::runtime_error(err.error().format());
+		}
 	}
 
 	~quad() = default;

@@ -3,7 +3,6 @@ module;
 #include <cstddef>
 #include <cstdint>
 #include <glm/glm.hpp>
-#include <print>
 
 export module moonstone:vertex_element;
 
@@ -14,7 +13,7 @@ export namespace moonstone::renderer
 /// Interface
 struct vertex_element
 {
-	// glm::vec3 m_normal;
+	glm::vec3 m_normal;
 	glm::vec2 m_position;
 	glm::vec2 m_uv;
 	std::uint32_t m_tex_layer;
@@ -30,7 +29,7 @@ struct vertex_element
 	static void register_layout(buffer_layout& layout)
 	{
 		// m_normal     3 floats
-		// layout.push<std::float_t>(3);
+		layout.push<std::float_t>(3);
 		// m_position   2 floats
 		layout.push<std::float_t>(2);
 		// m_uv         2 floats
@@ -47,5 +46,6 @@ struct vertex_element
 	vertex_element(vertex_element&&) = default;
 	vertex_element& operator=(const vertex_element&) = default;
 	vertex_element& operator=(vertex_element&&) = default;
-} __attribute__((packed));
+} __attribute__((aligned(32), packed));
+
 } // namespace moonstone::renderer

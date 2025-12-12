@@ -1,50 +1,60 @@
 module;
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <print>
-#include <stb/stb_image.h>
-
 #include "Assert.hpp"
+#include "Try.hpp"
 #include "glad/glad.h"
+#include <print>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#include <stdexcept>
 
 export module moonstone:texture;
 
 import :utility;
+import :error;
+import :call;
 
 export namespace moonstone::renderer
 {
 class texture
 {
-	unsigned int m_renderer_id;
-	unsigned char* m_local_buffer;
+	std::uint32_t m_renderer_id{};
+	unsigned char* m_local_buffer{};
 	std::string m_file_path;
-	int m_width, m_height, m_pixel_size;
+	std::int32_t m_width{}, m_height{}, m_pixel_size{};
+
+	error::result<> create()
+	{
+		Try(gl().call(glGenTextures, 1, &this->m_renderer_id));
+		Try(gl().call(glBindTexture, GL_TEXTURE_2D, this->m_renderer_id));
+		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+					  GL_LINEAR));
+		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+					  GL_LINEAR));
+		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+					  GL_CLAMP_TO_EDGE));
+		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+					  GL_CLAMP_TO_EDGE));
+		Try(gl().call(glTexImage2D, GL_TEXTURE_2D, 0, GL_RGBA8, this->m_width,
+					  this->m_height, 0, GL_RGBA8, GL_UNSIGNED_BYTE,
+					  this->m_local_buffer));
+		Try(texture::unbind());
+		return {};
+	}
 
 public:
-	texture(const std::string& path)
-		: m_renderer_id{0}, m_file_path{path}, m_local_buffer{nullptr},
-		  m_width{0}, m_height{0}, m_pixel_size{0}
+	explicit texture(const std::string& path) : m_file_path{path}
 	{
 		stbi_set_flip_vertically_on_load(1);
 		auto real_path = _ROOTDIR "/assets/" + path;
 		m_local_buffer = stbi_load(real_path.c_str(), &this->m_width,
 								   &this->m_height, &this->m_pixel_size, 4);
 
-		GL_CALL(glGenTextures(1, &this->m_renderer_id));
-		GL_CALL(glBindTexture(GL_TEXTURE_2D, m_renderer_id));
-
-		GL_CALL(
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
-		GL_CALL(
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-		GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-								GL_CLAMP_TO_EDGE));
-		GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-								GL_CLAMP_TO_EDGE));
-
-		GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_width, m_height, 0,
-							 GL_RGBA, GL_UNSIGNED_BYTE, m_local_buffer));
-		texture::unbind();
+		auto err = this->create();
+		if (!err.has_value())
+		{
+			throw std::runtime_error(err.error().format());
+		}
 
 		if (m_local_buffer)
 		{
@@ -53,25 +63,30 @@ public:
 	}
 	~texture()
 	{
-
-		GL_CALL(glDeleteTextures(1, &m_renderer_id));
+		auto err = gl().call(glDeleteTextures, 1, &this->m_renderer_id);
+		if (!err.has_value())
+		{
+			throw std::runtime_error(err.error().format());
+		}
 	}
 
-	void bind(unsigned int slot = 0) const
+	[[nodiscard]] error::result<> bind(std::uint32_t slot = 0) const
 	{
-		GL_CALL(glActiveTexture(GL_TEXTURE0 + slot));
-		GL_CALL(glBindTexture(GL_TEXTURE_2D, m_renderer_id));
+		Try(gl().call(glActiveTexture, GL_TEXTURE0 + slot));
+		Try(gl().call(glBindTexture, GL_TEXTURE_2D, this->m_renderer_id));
+		return {};
 	}
-	static void unbind()
+	static error::result<> unbind()
 	{
-		GL_CALL(glBindTexture(GL_TEXTURE_2D, 0));
+		Try(gl().call(glBindTexture, GL_TEXTURE_2D, 0));
+		return {};
 	}
 
-	[[nodiscard]] auto get_width() const -> int
+	[[nodiscard]] std::int32_t get_width() const
 	{
 		return this->m_width;
 	}
-	[[nodiscard]] auto get_height() const -> int
+	[[nodiscard]] std::int32_t get_height() const
 	{
 		return this->m_height;
 	}
