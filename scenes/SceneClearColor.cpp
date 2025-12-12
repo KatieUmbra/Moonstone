@@ -1,9 +1,9 @@
 module;
 
 #define GLFW_INCLUDE_NONE
-#include "Assert.hpp"
 #include <Try.hpp>
 #include <array>
+#include <glad/glad.h>
 #include <imgui.h>
 
 export module scenes:clear_color;

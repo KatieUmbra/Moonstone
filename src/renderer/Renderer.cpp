@@ -1,10 +1,8 @@
 module;
 
-#include "Assert.hpp"
 #include "Try.hpp"
 #include "glad/glad.h"
 #include "glfwpp/event.h"
-#include "glm/vec4.hpp"
 #include <glm/ext/vector_float4.hpp>
 
 export module moonstone:renderer;
@@ -39,7 +37,7 @@ public:
 	{
 		Try(shader.bind());
 		Try(vao.bind());
-		ib.bind();
+		Try(ib.bind());
 		Try(gl().call(glDrawElements, GL_TRIANGLES, ib.get_size(),
 					  GL_UNSIGNED_INT, nullptr));
 		return {};

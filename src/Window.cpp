@@ -1,14 +1,17 @@
 module;
 
 #define GLFW_INCLUDE_NONE
-#include "glfwpp/window.h"
-#include "Assert.hpp"
+#include "Try.hpp"
 #include <cstdint>
 #include <exception>
-#include <iostream>
-#include <vector>
+#include <glad/glad.h>
+#include <glfwpp/window.h>
+#include <print>
 
 export module moonstone:window;
+
+import :error;
+import :call;
 
 export namespace moonstone
 {
@@ -25,6 +28,14 @@ class window
 {
 	glfw::Window m_window;
 
+	static error::result<> create()
+	{
+		Try(renderer::gl().call(glBlendFunc, GL_SRC_ALPHA,
+								GL_ONE_MINUS_SRC_ALPHA));
+		Try(renderer::gl().call(glEnable, GL_BLEND));
+		return {};
+	}
+
 public:
 	explicit window(const window_properties& props)
 		: m_window{glfw::Window{props.width, props.height, props.title}}
@@ -37,11 +48,15 @@ public:
 		if (gladLoadGLLoader(
 				reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0)
 		{
-			std::cerr << "Failed to initialize GLAD" << '\n';
+			std::println(stderr, "Failed to initialize GLAD");
 			std::terminate();
 		}
-		GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-		GL_CALL(glEnable(GL_BLEND))
+		auto err = window::create();
+		if (!err.has_value())
+		{
+			std::println(stderr, "{}", err.error().format());
+			std::terminate();
+		}
 	}
 	~window() = default;
 	[[nodiscard]] bool loop() const

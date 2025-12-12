@@ -1,8 +1,9 @@
 module;
 
-#include "Assert.hpp"
 #include "Try.hpp"
 #include "glad/glad.h"
+#include <exception>
+#include <format>
 #include <print>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
@@ -46,7 +47,8 @@ public:
 	explicit texture(const std::string& path) : m_file_path{path}
 	{
 		stbi_set_flip_vertically_on_load(1);
-		auto real_path = _ROOTDIR "/assets/" + path;
+		auto real_path = std::format("{}{}", _ROOTDIR "/assets/", path);
+
 		m_local_buffer = stbi_load(real_path.c_str(), &this->m_width,
 								   &this->m_height, &this->m_pixel_size, 4);
 
@@ -56,7 +58,7 @@ public:
 			throw std::runtime_error(err.error().format());
 		}
 
-		if (m_local_buffer)
+		if (m_local_buffer != nullptr)
 		{
 			stbi_image_free(m_local_buffer);
 		}
@@ -64,10 +66,13 @@ public:
 	~texture()
 	{
 		auto err = gl().call(glDeleteTextures, 1, &this->m_renderer_id);
+#ifdef _DEBUG
 		if (!err.has_value())
 		{
-			throw std::runtime_error(err.error().format());
+			std::println(stderr, "{}", err.error().format());
+			std::terminate();
 		}
+#endif
 	}
 
 	[[nodiscard]] error::result<> bind(std::uint32_t slot = 0) const

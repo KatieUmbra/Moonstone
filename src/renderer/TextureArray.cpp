@@ -1,7 +1,6 @@
 module;
 
 #include "Try.hpp"
-#include <Assert.hpp>
 #include <cstddef>
 #include <cstdint>
 #include <glad/glad.h>
@@ -10,7 +9,6 @@ module;
 #include <ranges>
 #include <span>
 #include <stb/stb_image.h>
-#include <stdexcept>
 
 export module moonstone:texture_array;
 
@@ -73,7 +71,7 @@ public:
 					  std::initializer_list<const char*>{})
 		: m_image_buffers(texture_paths.size())
 	{
-		stbi_set_flip_vertically_on_load_thread(true);
+		stbi_set_flip_vertically_on_load_thread(1);
 		for (const auto& [texture_path, element] :
 			 std::views::zip(texture_paths, this->m_image_buffers))
 		{
