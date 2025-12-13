@@ -1,5 +1,6 @@
 module;
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <glm/glm.hpp>
@@ -14,14 +15,13 @@ export namespace moonstone::renderer
 struct vertex_element
 {
 	glm::vec3 m_normal;
+	glm::vec3 m_uv;
 	glm::vec2 m_position;
-	glm::vec2 m_uv;
-	std::uint32_t m_tex_layer;
 
 	vertex_element(glm::vec2 m_position, glm::vec2 m_uv,
 				   std::uint32_t m_tex_layer)
-		: /* m_normal(m_normal), */ m_position(m_position), m_uv(m_uv),
-		  m_tex_layer(m_tex_layer)
+		: /* m_normal(m_normal), */ m_position(m_position),
+		  m_uv(m_uv.x, m_uv.y, static_cast<std::float_t>(m_tex_layer))
 	{
 	}
 
@@ -30,13 +30,11 @@ struct vertex_element
 	{
 		// m_normal     3 floats
 		layout.push<std::float_t>(3);
+		// m_uv         3 floats
+		layout.push<std::float_t>(3);
 		// m_position   2 floats
 		layout.push<std::float_t>(2);
-		// m_uv         2 floats
-		layout.push<std::float_t>(2);
-		// total        7 floats
-		// m_tex_layer  1 uint32
-		layout.push<std::uint32_t>(1);
+		// total        8 floats
 		// In total there's 32 bytes
 		// so stride will be 32 bytes
 		// std::println("Stride: {}", layout.get_stride());

@@ -5,10 +5,9 @@ layout(location = 0) out vec4 color;
 uniform sampler2D u_texture;
 uniform sampler2DArray u_textureArray;
 
-layout(location = 0) in vec2 v_texture_coordinate;
-layout(location = 1) flat in uint v_texture_layer;
+layout(location = 0) in vec3 v_texture_coordinate;
 
 void main()
 {
-    color = vec4(texture(u_textureArray, vec3(v_texture_coordinate.xy, v_texture_layer)));
+    color = vec4(texture(u_textureArray, v_texture_coordinate));
 }
