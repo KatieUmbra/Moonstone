@@ -1,7 +1,6 @@
 build
 libs/glad/include
 libs/glad/src
-libs/imgui
 libs/angelscript
 .cache
 compile_commands.json
@@ -9,3 +8,4 @@ imgui.ini
 log.txt
 .clang-format
 .clang-tidy
+.vs

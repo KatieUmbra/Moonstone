@@ -7,14 +7,14 @@ set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 string(CONCAT CMAKE_CXX_FLAGS "-stdlib=libc++")
 
-find_package(imgui)
-find_package(glm)
-find_package(doctest)
 set(GLFWPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # disable building GLFWPP examples
 SET(IMGUI_BUILD_GLFW_BINDING ON)
 add_subdirectory(libs/glfwpp)
 add_subdirectory(libs/glad)
 add_subdirectory(libs/angelscript/sdk/angelscript/projects/cmake/)
+add_subdirectory(libs/imgui)
+add_subdirectory(libs/doctest)
+add_subdirectory(libs/glm)
 
 set(SOURCES
     ./src/Main.cpp
