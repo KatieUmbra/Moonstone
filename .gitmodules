@@ -5,7 +5,7 @@
 	path = libs/imgui
 	url = git@github.com:ocornut/imgui.git
 [submodule "libs/stb"]
-	path = libs/stb
+	path = libs/stb/stb
 	url = git@github.com:nothings/stb.git
 [submodule "libs/doctest"]
 	path = libs/doctest
@@ -13,3 +13,6 @@
 [submodule "libs/glm"]
 	path = libs/glm
 	url = git@github.com:icaven/glm.git
+[submodule "libs/flat_map"]
+	path = libs/flat_map
+	url = git@github.com:Flast/flat_map.git
