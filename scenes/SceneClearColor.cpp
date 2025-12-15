@@ -5,6 +5,7 @@ module;
 #include <array>
 #include <glad/glad.h>
 #include <imgui.h>
+#include <string>
 
 export module scenes:clear_color;
 

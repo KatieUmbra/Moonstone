@@ -6,7 +6,7 @@ module;
 #include <format>
 #include <print>
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
+#include <stb_image.h>
 #include <stdexcept>
 
 export module moonstone:texture;

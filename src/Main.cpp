@@ -1,6 +1,7 @@
 #include <glm/glm.hpp>
+#include <string_view>
 #define GLFW_INCLUDE_NONE
-#include <glfwpp/glfwpp.h>
+#include <GLFW/glfw3.h>
 #include <imgui.h>
 
 import moonstone;
@@ -12,15 +13,8 @@ int main()
 	//                    Initialization
 	// =======================================================
 	auto logger = moonstone::setup_logging();
-	[[maybe_unused]] auto library = glfw::init();
-	const glfw::WindowHints hints{.resizable = false,
-								  .clientApi = glfw::ClientApi::OpenGl,
-								  .contextVersionMajor = 4,
-								  .contextVersionMinor = 6,
-								  .openglProfile = glfw::OpenGlProfile::Core};
-	hints.apply();
-	const moonstone::window_properties props{.hints = hints,
-											 .width = 800,
+	[[maybe_unused]] auto library = glfwInit();
+	const moonstone::window_properties props{.width = 800,
 											 .height = 800,
 											 .title = "Hello OpenGL",
 											 .vsync = false,
@@ -52,7 +46,7 @@ int main()
 	while (window.loop())
 	{
 		renderer.clear();
-		if (current_test.get().get_name() != "")
+		if (current_test.get().get_name() != std::string_view{""})
 		{
 			current_test.get().on_update(0.0F);
 			current_test.get().on_render();
@@ -67,7 +61,7 @@ int main()
 		auto framerate = ImGui::GetIO().Framerate;
 		ImGui::Text("Framerate %.2f", framerate);
 		ImGui::Separator();
-		if (current_test.get().get_name() != "")
+		if (current_test.get().get_name() != std::string_view{""})
 		{
 			ImGui::Text("Test Properties:");
 			ImGui::Separator();

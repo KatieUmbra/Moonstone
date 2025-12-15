@@ -2,10 +2,10 @@ module;
 
 #define GLFW_INCLUDE_NONE
 #include "Try.hpp"
+#include <GLFW/glfw3.h>
 #include <cstdint>
 #include <exception>
 #include <glad/glad.h>
-#include <glfwpp/window.h>
 #include <print>
 
 export module moonstone:window;
@@ -17,7 +17,6 @@ export namespace moonstone
 {
 struct window_properties
 {
-	glfw::WindowHints hints;
 	std::uint16_t width{}, height{};
 	const char* title{};
 	bool vsync{};
@@ -26,7 +25,7 @@ struct window_properties
 
 class window
 {
-	glfw::Window m_window;
+	GLFWwindow* m_window;
 
 	static error::result<> create()
 	{
@@ -38,13 +37,17 @@ class window
 
 public:
 	explicit window(const window_properties& props)
-		: m_window{glfw::Window{props.width, props.height, props.title}}
+		: m_window{glfwCreateWindow(props.width, props.height, props.title,
+									nullptr, nullptr)}
 	{
-
-		props.hints.apply();
-		glfw::makeContextCurrent(this->m_window);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwMakeContextCurrent(this->m_window);
 		if (props.vsync)
-			glfw::swapInterval(1);
+			glfwSwapInterval(1);
 		if (gladLoadGLLoader(
 				reinterpret_cast<GLADloadproc>(glfwGetProcAddress)) == 0)
 		{
@@ -61,13 +64,13 @@ public:
 	~window() = default;
 	[[nodiscard]] bool loop() const
 	{
-		return !this->m_window.shouldClose();
+		return glfwWindowShouldClose(this->m_window) == 0;
 	};
-	void set_icon(const std::vector<glfw::Image>& imgs)
+	void set_icon(const std::vector<GLFWimage>& imgs)
 	{
-		this->m_window.setIcon(imgs);
+		glfwSetWindowIcon(this->m_window, 1, imgs.data());
 	};
-	auto get_glfw_window() -> glfw::Window&
+	auto get_glfw_window() -> GLFWwindow*
 	{
 		return this->m_window;
 	}

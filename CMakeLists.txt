@@ -21,7 +21,7 @@ set(SOURCES
     )
 
 SET(MOONSTONE_SOURCES
-    ./src/${PROJECT_NAME}.c++
+    ./src/Moonstone.c++
     ./src/external/External.c++
     ./scenes/Scenes.c++
     ./src/Scene.cpp

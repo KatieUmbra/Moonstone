@@ -1,9 +1,11 @@
 module;
 
 #include "Try.hpp"
-#include "glad/glad.h"
-#include "glfwpp/event.h"
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+#include <glad/glad.h>
 #include <glm/ext/vector_float4.hpp>
+#include <stdexcept>
 
 export module moonstone:renderer;
 
@@ -55,8 +57,8 @@ public:
 	}
 	void update_buffers()
 	{
-		glfw::pollEvents();
-		this->m_window.get_glfw_window().swapBuffers();
+		glfwPollEvents();
+		glfwSwapBuffers(this->m_window.get_glfw_window());
 	}
 };
 } // namespace moonstone::renderer

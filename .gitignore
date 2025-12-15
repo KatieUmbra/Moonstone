@@ -10,3 +10,4 @@ log.txt
 out/
 .vscode
 CMakeUserPresets.json
+vcpkg_installed/

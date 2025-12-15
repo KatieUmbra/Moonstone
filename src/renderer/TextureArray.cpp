@@ -8,7 +8,7 @@ module;
 #include <print>
 #include <ranges>
 #include <span>
-#include <stb/stb_image.h>
+#include <stb_image.h>
 
 export module moonstone:texture_array;
 

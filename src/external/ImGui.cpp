@@ -1,10 +1,10 @@
 module;
 
 #define GLFW_INCLUDE_NONE
-#include "imgui.h"
-#include "glfwpp/window.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
+#include <GLFW/glfw3.h>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 export module external:imgui;
 
@@ -17,7 +17,7 @@ void cleanup_imgui()
 	ImGui::DestroyContext();
 }
 
-void init_imgui(const glfw::Window& wnd)
+void init_imgui(GLFWwindow* wnd)
 {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -29,8 +29,9 @@ void init_imgui(const glfw::Window& wnd)
 	style.WindowRounding = 0.0f;
 	style.Colors[ImGuiCol_WindowBg].w = 1.0f;
 
-	ImGui_ImplGlfw_InitForOpenGL(wnd, true); // Second param install_callback=true will install GLFW
-											 // callbacks and chain to existing ones.
+	ImGui_ImplGlfw_InitForOpenGL(
+		wnd, true); // Second param install_callback=true will install GLFW
+					// callbacks and chain to existing ones.
 	ImGui_ImplOpenGL3_Init();
 }
 
