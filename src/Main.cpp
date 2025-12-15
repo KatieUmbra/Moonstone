@@ -1,8 +1,7 @@
-#include <glm/ext/vector_float2.hpp>
-#include <glm/ext/vector_float3.hpp>
+#include <glm/glm.hpp>
 #define GLFW_INCLUDE_NONE
-#include "glfwpp/glfwpp.h"
-#include "imgui.h"
+#include <glfwpp/glfwpp.h>
+#include <imgui.h>
 
 import moonstone;
 import scenes;

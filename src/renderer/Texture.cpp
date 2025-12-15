@@ -24,7 +24,7 @@ class texture
 	std::string m_file_path;
 	std::int32_t m_width{}, m_height{}, m_pixel_size{};
 
-	error::result<> create()
+	moonstone::error::result<> create()
 	{
 		Try(gl().call(glGenTextures, 1, &this->m_renderer_id));
 		Try(gl().call(glBindTexture, GL_TEXTURE_2D, this->m_renderer_id));

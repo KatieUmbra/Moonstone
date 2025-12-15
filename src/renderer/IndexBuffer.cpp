@@ -3,11 +3,11 @@ module;
 #include "Try.hpp"
 #include "glad/glad.h"
 #include <algorithm>
-#include <flat_map>
 #include <print>
 #include <ranges>
 #include <stdexcept>
 #include <tuple>
+#include <flat_map>
 
 export module moonstone:index_buffer;
 

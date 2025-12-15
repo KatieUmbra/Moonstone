@@ -12,6 +12,7 @@ export module moonstone:buffer_layout;
 
 export namespace moonstone::renderer
 {
+
 struct buffer_element
 {
 	std::uint32_t type;
@@ -31,7 +32,7 @@ struct buffer_element
 			return 0;
 		}
 	}
-} __attribute__((packed, aligned(16)));
+};
 class buffer_layout
 {
 	std::vector<buffer_element> m_elements;

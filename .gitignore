@@ -9,3 +9,5 @@ log.txt
 .clang-format
 .clang-tidy
 .vs
+out/
+.vscode

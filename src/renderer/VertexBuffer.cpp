@@ -2,10 +2,10 @@ module;
 
 #include "Try.hpp"
 #include <cstdint>
-#include <flat_map>
 #include <glad/glad.h>
 #include <print>
 #include <stdexcept>
+#include <flat_map>
 
 export module moonstone:vertex_buffer;
 

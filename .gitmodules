@@ -13,6 +13,3 @@
 [submodule "libs/glm"]
 	path = libs/glm
 	url = git@github.com:icaven/glm.git
-[submodule "libs/flat_map"]
-	path = libs/flat_map
-	url = git@github.com:Flast/flat_map.git
