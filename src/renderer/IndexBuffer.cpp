@@ -56,7 +56,7 @@ public:
 	}
 #else
 	{
-		gl().call(glDeleteglDeleteBuffers, 1, &this->m_renderer_id);
+		gl().call(glDeleteBuffers, 1, &this->m_renderer_id);
 	}
 #endif
 

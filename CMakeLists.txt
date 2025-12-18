@@ -54,8 +54,6 @@ add_library(${PROJECT_NAME})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 target_sources(${PROJECT_NAME} PUBLIC FILE_SET CXX_MODULES FILES ${MOONSTONE_SOURCES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:_DEBUG> _ROOTDIR="${CMAKE_SOURCE_DIR}")
-#target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-fno-omit-frame-pointer -fsanitize=address>)
-#target_link_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Angelscript::angelscript
     doctest::doctest
@@ -85,8 +83,6 @@ target_link_libraries(game PRIVATE
     imgui::imgui
     ${PROJECT_NAME}
 )
-#target_compile_options(game PRIVATE $<$<CONFIG:Debug>:-fno-omit-frame-pointer -fsanitize=address>)
-#target_link_options(game PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
 target_include_directories(game SYSTEM PRIVATE
     glfw3_INCLUDE_DIRS
     glm_INCLUDE_DIRS

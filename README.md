@@ -26,7 +26,7 @@ $ vcpkg install
 ```
 - run cmake:
 ```shell
-$ cmake --preset=default
+$ cmake -DCMAKE_BUILD_TYPE=Debug --preset=default
 ```
 
 ### Build the project
@@ -36,6 +36,6 @@ $ cmake --build Build --config Debug
 ```
 or
 ```shell
-$ cmake --build Build --config Release
+$ cmake --build build --config Release
 ```
 for release (move the build/game binary to the root of the project)
