@@ -5,7 +5,7 @@ module;
 #include <array>
 #include <glad/glad.h>
 #include <imgui.h>
-#include <string>
+#include <string_view>
 
 export module scenes:clear_color;
 
@@ -42,7 +42,7 @@ public:
 		ImGui::ColorEdit4("Clear Color", m_clear_color.data());
 		return {};
 	}
-	[[nodiscard]] std::string get_name() const override
+	[[nodiscard]] const char* get_name() const override
 	{
 		return "Clear color.";
 	};

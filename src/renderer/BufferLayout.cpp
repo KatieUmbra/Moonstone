@@ -6,6 +6,7 @@ module;
 #include <exception>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <print>
 #include <vector>
 
 export module moonstone:buffer_layout;
@@ -19,7 +20,7 @@ struct buffer_element
 	std::uint32_t count;
 	bool normalized;
 
-	static auto get_size_of_type(unsigned int type) -> unsigned int
+	constexpr static auto get_size_of_type(unsigned int type) -> unsigned int
 	{
 		switch (type)
 		{
@@ -36,7 +37,7 @@ struct buffer_element
 class buffer_layout
 {
 	std::vector<buffer_element> m_elements;
-	unsigned int m_stride;
+	unsigned int m_stride{0};
 
 public:
 #define PUSH(TYPE, GL_TYPE, NORMALIZE)                                         \
@@ -45,6 +46,7 @@ public:
 		this->m_elements.emplace_back(                                         \
 			buffer_element{GL_TYPE, count, NORMALIZE});                        \
 		this->m_stride += buffer_element::get_size_of_type(GL_TYPE) * count;   \
+		std::println("Adding stride: {}", this->m_stride);                     \
 	}
 
 	template <typename T> void push(std::uint32_t /*Count*/)
@@ -66,5 +68,5 @@ public:
 	{
 		return this->m_stride;
 	}
-};
+}; // namespace moonstone::renderer
 } // namespace moonstone::renderer

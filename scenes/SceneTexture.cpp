@@ -104,7 +104,7 @@ public:
 		Try(this->vbo.update());
 		return {};
 	}
-	[[nodiscard]] std::string get_name() const override
+	[[nodiscard]] const char* get_name() const override
 	{
 		return "Texture";
 	}

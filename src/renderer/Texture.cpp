@@ -64,17 +64,20 @@ public:
 		}
 	}
 	~texture()
+#ifdef _DEBUG
 	{
 		auto err = gl().call(glDeleteTextures, 1, &this->m_renderer_id);
-#ifdef _DEBUG
 		if (!err.has_value())
 		{
 			std::println(stderr, "{}", err.error().format());
 			std::terminate();
 		}
-#endif
 	}
-
+#else
+	{
+		gl().call(glDeleteTextures, 1, &this->m_renderer_id);
+	}
+#endif
 	[[nodiscard]] error::result<> bind(std::uint32_t slot = 0) const
 	{
 		Try(gl().call(glActiveTexture, GL_TEXTURE0 + slot));

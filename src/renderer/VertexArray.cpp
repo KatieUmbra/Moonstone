@@ -2,8 +2,9 @@ module;
 
 #include "Try.hpp"
 #include "glad/glad.h"
-#include <cstddef>
 #include <cstdint>
+#include <exception>
+#include <print>
 #include <stdexcept>
 
 export module moonstone:vertex_array;
@@ -25,17 +26,25 @@ public:
 		auto res = gl().call(glGenVertexArrays, 1, &this->m_renderer_id);
 		if (!res.has_value())
 		{
+			std::terminate();
 			throw std::runtime_error(res.error().format().c_str());
 		}
 	}
 	~vertex_array()
+#ifdef _DEBUG
 	{
 		auto res = gl().call(glDeleteVertexArrays, 1, &this->m_renderer_id);
 		if (!res.has_value())
 		{
-			throw std::runtime_error(res.error().format().c_str());
+			std::println(stderr, "{}", res.error().format());
+			std::terminate();
 		}
 	}
+#else
+	{
+		gl().call(glDeteglDeleteVertexArrays, 1, &this->m_renderer_id);
+	}
+#endif
 	[[nodiscard]] error::result<> add_buffer(const vertex_buffer& vb,
 											 const buffer_layout& bl) const
 	{
@@ -48,6 +57,7 @@ public:
 		{
 			const auto& element = elements[i];
 			const auto stride = bl.get_stride();
+			std::println("stride: {}", stride);
 			const auto size = element.count;
 			Try(gl().call(glEnableVertexAttribArray, i));
 			Try(gl().call(glVertexAttribPointer, i, size, element.type,

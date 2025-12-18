@@ -2,10 +2,10 @@ module;
 
 #include "Try.hpp"
 #include <cstdint>
+#include <flat_map>
 #include <glad/glad.h>
 #include <print>
 #include <stdexcept>
-#include <flat_map>
 
 export module moonstone:vertex_buffer;
 
@@ -40,13 +40,20 @@ public:
 		}
 	};
 	~vertex_buffer()
+#ifdef _DEBUG
 	{
 		auto res = gl().call(glDeleteBuffers, 1, &this->m_renderer_id);
 		if (!res.has_value())
 		{
-			throw std::runtime_error(res.error().format().c_str());
+			std::println(stderr, "{}", res.error().format());
+			std::terminate();
 		}
-	};
+	}
+#else
+	{
+		gl().call(glDeleteBuffers, 1, &this->m_renderer_id);
+	}
+#endif
 	error::result<std::uint32_t> insert(vertex_element element)
 	{
 		this->m_vertices.insert({this->m_vertex_count, element});

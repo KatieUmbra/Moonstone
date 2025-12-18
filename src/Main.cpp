@@ -1,5 +1,6 @@
+#include <cstdlib>
 #include <glm/glm.hpp>
-#include <string_view>
+#include <iostream>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <imgui.h>
@@ -46,7 +47,7 @@ int main()
 	while (window.loop())
 	{
 		renderer.clear();
-		if (current_test.get().get_name() != std::string_view{""})
+		if (nullptr != current_test.get().get_name())
 		{
 			current_test.get().on_update(0.0F);
 			current_test.get().on_render();
@@ -61,7 +62,7 @@ int main()
 		auto framerate = ImGui::GetIO().Framerate;
 		ImGui::Text("Framerate %.2f", framerate);
 		ImGui::Separator();
-		if (current_test.get().get_name() != std::string_view{""})
+		if (current_test.get().get_name() != nullptr)
 		{
 			ImGui::Text("Test Properties:");
 			ImGui::Separator();
@@ -79,7 +80,7 @@ int main()
 #pragma unroll 2
 			for (auto& element : tests)
 			{
-				if (ImGui::Button(element.get().get_name().c_str()))
+				if (ImGui::Button(element.get().get_name()))
 				{
 					current_test = element;
 				}

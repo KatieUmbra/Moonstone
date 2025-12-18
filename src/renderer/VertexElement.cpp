@@ -4,6 +4,7 @@ module;
 #include <cstddef>
 #include <cstdint>
 #include <glm/glm.hpp>
+#include <print>
 
 export module moonstone:vertex_element;
 
@@ -37,7 +38,7 @@ struct vertex_element
 		// total        8 floats
 		// In total there's 32 bytes
 		// so stride will be 32 bytes
-		// std::println("Stride: {}", layout.get_stride());
+		std::println("Stride: {}", layout.get_stride());
 	}
 
 	vertex_element(const vertex_element&) = default;

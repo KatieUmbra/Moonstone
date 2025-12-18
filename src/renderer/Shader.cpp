@@ -4,6 +4,7 @@ module;
 #include "Try.hpp"
 #include "glad/glad.h"
 #include <cstdint>
+#include <exception>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float3.hpp>
 #include <glm/ext/vector_float4.hpp>
@@ -110,14 +111,20 @@ class shader
 
 public:
 	~shader()
+#ifdef _DEBUG
 	{
 		const auto& result = gl().call(glDeleteProgram, m_renderer_id);
 		if (!result.has_value())
 		{
 			std::println(stderr, "{}", result.error().format());
-			__builtin_debugtrap();
+			std::terminate();
 		}
 	}
+#else
+	{
+		gl().call(glDeleteProgram, this->m_renderer_id);
+	}
+#endif
 	shader(const std::string& vs_path, const std::string& fs_path)
 	{
 		const auto& result = create_shader(vs_path, fs_path);

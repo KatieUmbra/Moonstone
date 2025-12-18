@@ -11,3 +11,4 @@ out/
 .vscode
 CMakeUserPresets.json
 vcpkg_installed/
+massif.out.*

@@ -3,11 +3,11 @@ module;
 #include "Try.hpp"
 #include "glad/glad.h"
 #include <algorithm>
+#include <flat_map>
 #include <print>
 #include <ranges>
 #include <stdexcept>
 #include <tuple>
-#include <flat_map>
 
 export module moonstone:index_buffer;
 
@@ -45,13 +45,20 @@ public:
 	}
 
 	~index_buffer()
+#ifdef _DEBUG
 	{
 		auto err = gl().call(glDeleteBuffers, 1, &this->m_renderer_id);
 		if (!err.has_value())
 		{
-			throw std::runtime_error(err.error().format());
+			std::println(stderr, "{}", err.error().format());
+			std::terminate();
 		}
 	}
+#else
+	{
+		gl().call(glDeleteglDeleteBuffers, 1, &this->m_renderer_id);
+	}
+#endif
 
 	template <std::size_t N>
 	error::result<std::array<std::uint32_t, N>> insert(

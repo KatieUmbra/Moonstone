@@ -1,8 +1,7 @@
 module;
 
 #include <functional>
-#include <stdexcept>
-#include <string>
+#include <string_view>
 #include <vector>
 
 export module moonstone:scene;
@@ -33,9 +32,9 @@ public:
 	{
 		return this->get_name() == other.get_name();
 	};
-	[[nodiscard]] virtual std::string get_name() const
+	[[nodiscard]] virtual const char* get_name() const
 	{
-		return {};
+		return nullptr;
 	};
 	static void register_scene(scene& scene)
 	{
