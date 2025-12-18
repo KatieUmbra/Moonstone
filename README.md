@@ -6,23 +6,25 @@ Repository continuing my old [OpenGL_Engine](https://github.com/KatieUmbra/OpenG
 ### Dependencies
 To build this project you need to install the following dependencies:
 
-    - `vcpkg`
-    - `git`
-    - `ninja`
-    - `cmake`
-#### Linux
-    - `unzip`
-    - `clang` or `gcc`
-#### Windows
-    - `MinGW gcc or clang`
+- `vcpkg`
+- `git`
+- `ninja`
+- `cmake`
+  
+if using linux:
+- `unzip`
+- `clang` or `gcc`
+  
+if using windows:
+- `MinGW gcc or clang`
 
 ### CMake configuration
-    - follow the vcpkg instructions  for (CMakeUserPresets.json)[https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-powershell#4---build-and-run-the-project]
-    - install vcpkg packages
+- follow the vcpkg instructions  for [CMakeUserPresets.json](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started?pivots=shell-powershell#4---build-and-run-the-project)
+- install vcpkg packages
 ```shell
 $ vcpkg install
 ```
-    - run cmake:
+- run cmake:
 ```shell
 $ cmake --preset=default
 ```
