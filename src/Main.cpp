@@ -1,3 +1,11 @@
+/*
+* File name: Main.cpp
+* Author: Katherine
+* Date created: 2025-12-18 17:53:02
+// Date modified: 2025-12-18 17:53:28
+* ===============
+*/
+
 #include <cstdlib>
 #include <glm/glm.hpp>
 #include <iostream>

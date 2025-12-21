@@ -42,6 +42,9 @@ SET(MOONSTONE_SOURCES
     ./src/renderer/Renderer.cpp
     ./src/renderer/TextureArray.cpp
     ./src/renderer/Call.cpp
+    ./src/renderer/AsyncBuffer.cpp
+    ./src/renderer/AsyncBufferLock.cpp
+    ./src/renderer/AsyncBufferConnection.cpp
     # Engine Module
     ./src/engine/quad.cpp
     # Scenes Module
@@ -53,7 +56,7 @@ SET(MOONSTONE_SOURCES
 add_library(${PROJECT_NAME})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 target_sources(${PROJECT_NAME} PUBLIC FILE_SET CXX_MODULES FILES ${MOONSTONE_SOURCES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:_DEBUG> _ROOTDIR="${CMAKE_SOURCE_DIR}")
+target_compile_definitions(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:_DEBUG>)
 target_link_libraries(${PROJECT_NAME} PRIVATE
     Angelscript::angelscript
     doctest::doctest

@@ -57,7 +57,6 @@ public:
 		{
 			const auto& element = elements[i];
 			const auto stride = bl.get_stride();
-			std::println("stride: {}", stride);
 			const auto size = element.count;
 			Try(gl().call(glEnableVertexAttribArray, i));
 			Try(gl().call(glVertexAttribPointer, i, size, element.type,

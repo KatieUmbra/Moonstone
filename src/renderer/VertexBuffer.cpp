@@ -12,6 +12,7 @@ export module moonstone:vertex_buffer;
 import :vertex_element;
 import :call;
 import :error;
+import :async_buffer;
 
 export namespace moonstone::renderer
 {

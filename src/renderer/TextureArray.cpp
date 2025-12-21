@@ -75,8 +75,7 @@ public:
 		for (const auto& [texture_path, element] :
 			 std::views::zip(texture_paths, this->m_image_buffers))
 		{
-			const auto* root_path = _ROOTDIR "/assets/";
-			std::string path{root_path};
+			std::string path{"assets/"};
 			path.append(texture_path);
 			int width = 0;
 			int height = 0;

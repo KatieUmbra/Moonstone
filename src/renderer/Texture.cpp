@@ -47,7 +47,7 @@ public:
 	explicit texture(const std::string& path) : m_file_path{path}
 	{
 		stbi_set_flip_vertically_on_load(1);
-		auto real_path = std::format("{}{}", _ROOTDIR "/assets/", path);
+		auto real_path = std::format("{}{}", "assets/", path);
 
 		m_local_buffer = stbi_load(real_path.c_str(), &this->m_width,
 								   &this->m_height, &this->m_pixel_size, 4);

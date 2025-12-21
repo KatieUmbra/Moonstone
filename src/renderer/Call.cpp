@@ -1,10 +1,10 @@
 module;
 
 #include <expected>
-#include <print>
 #include <queue>
 #include <source_location>
 #include <utility>
+#include <variant>
 
 export module moonstone:call;
 
@@ -46,7 +46,7 @@ struct gl
 		return std::unexpected{const_cast<const error::gl_error&>(err)};
 	}
 	template <typename F, typename... Args>
-	std::expected<void, error::gl_error> call(F f, Args... args)
+	std::expected<std::monostate, error::gl_error> call(F f, Args... args)
 	{
 		// Empty the queue
 		std::queue<error::gl_error> empty{};

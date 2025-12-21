@@ -46,7 +46,6 @@ public:
 		this->m_elements.emplace_back(                                         \
 			buffer_element{GL_TYPE, count, NORMALIZE});                        \
 		this->m_stride += buffer_element::get_size_of_type(GL_TYPE) * count;   \
-		std::println("Adding stride: {}", this->m_stride);                     \
 	}
 
 	template <typename T> void push(std::uint32_t /*Count*/)

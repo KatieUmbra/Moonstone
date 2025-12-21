@@ -18,5 +18,8 @@ export import :index_buffer;
 export import :buffer_layout;
 export import :renderer;
 export import :call;
+export import :async_buffer;
+export import :async_buffer_connection;
+export import :async_buffer_lock;
 // engine stuff
 export import :quad;
