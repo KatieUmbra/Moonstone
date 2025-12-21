@@ -2,7 +2,7 @@
 * File name: SynchronizedBuffer.cpp
 * Author: Katherine
 * Date created: 2025-12-20 23:09:46
-// Date modified: 2025-12-20 23:10:47
+// Date modified: 2025-12-21 02:57:28
 * ===============
 */
 
@@ -11,19 +11,18 @@
 module;
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <execution>
 #include <flat_map>
 #include <iterator>
 #include <numeric>
-#include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 export module moonstone:sync_buffer;
 
-import :sync_buffer_lock;
 import :sync_buffer_connection;
 
 export namespace moonstone::renderer
@@ -59,6 +58,7 @@ public:
 	constexpr lock_status& operator=(Value a)
 	{
 		this->m_value = a;
+		return *this;
 	}
 	constexpr bool operator!=(lock_status a) const
 	{
@@ -73,17 +73,18 @@ private:
 	Value m_value;
 };
 
-template <typename T, std::size_t N> class async_buffer
+template <typename T, std::size_t N> class synchronized_buffer
 {
 	std::flat_map<std::size_t, std::array<T, N>> m_buffer{};
 	std::vector<moonstone::renderer::lock_status> m_locks;
 	std::vector<std::pair<std::size_t, std::size_t>> m_changes;
 	bool m_locked{false};
+	std::size_t m_latest_id{0};
 
 	struct inner_buffer_scoped_lock
 	{
-		async_buffer<T, N>& m_element;
-		explicit inner_buffer_scoped_lock(async_buffer<T, N>& element)
+		synchronized_buffer<T, N>& m_element;
+		explicit inner_buffer_scoped_lock(synchronized_buffer<T, N>& element)
 			: m_element{element}
 		{
 			while (!element.m_locked)
@@ -117,11 +118,14 @@ template <typename T, std::size_t N> class async_buffer
 	};
 
 public:
-	async_buffer<T, N>() = default;
-	buffer_connection<async_buffer<T, N>> connect()
+	synchronized_buffer<T, N>() = default;
+	buffer_connection<synchronized_buffer<T, N>, T, N> connect()
 	{
+		inner_buffer_scoped_lock lock(this);
 		this->m_locks.emplace_back(lock_status::unlocked);
-		return buffer_connection(this->m_locks.size() - 1, this);
+		auto [key, position] = this->insert({});
+		return buffer_connection(this->m_locks.size() - 1, position, key, this,
+								 this->m_changes.begin());
 	}
 
 	std::tuple<T*, std::size_t, inner_buffer_scoped_lock&&> read()
@@ -159,6 +163,18 @@ public:
 		this->m_buffer.erase(this->m_buffer.end());
 	}
 
+	void update(std::size_t key, const std::array<T, N>& data)
+	{
+		this->m_buffer.at(key) = data;
+	}
+
+	std::pair<std::size_t, std::size_t> insert(const std::array<T, N>& data)
+	{
+		auto key = this->m_latest_id++;
+		this->m_buffer.emplace_back({key, data});
+		return (key, this->m_buffer.size() - 1);
+	}
+
 	constexpr void lock_handler(std::size_t id)
 	{
 		this->m_locks.at(id) = lock_status::locked;
@@ -174,8 +190,8 @@ public:
 		return this->m_locked;
 	}
 
-	constexpr std::vector<std::pair<std::size_t, std::size_t>>::iterator
-	changes_end()
+	constexpr auto changes_end()
+		-> std::vector<std::pair<std::size_t, std::size_t>>::iterator
 	{
 		return this->m_changes.end();
 	}

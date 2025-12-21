@@ -20,7 +20,7 @@ class vertex_buffer
 {
 	std::uint32_t m_renderer_id{};
 	std::uint32_t m_vertex_count{0};
-	sync_buffer<vertex_element, 4> m_buffer;
+	synchronized_buffer<vertex_element, 4> m_buffer;
 	std::flat_map<std::uint32_t, vertex_element> m_vertices;
 	error::result<> create()
 	{
