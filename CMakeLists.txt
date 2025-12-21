@@ -42,9 +42,9 @@ SET(MOONSTONE_SOURCES
     ./src/renderer/Renderer.cpp
     ./src/renderer/TextureArray.cpp
     ./src/renderer/Call.cpp
-    ./src/renderer/AsyncBuffer.cpp
-    ./src/renderer/AsyncBufferLock.cpp
-    ./src/renderer/AsyncBufferConnection.cpp
+    ./src/renderer/SynchronizedBuffer.cpp
+    ./src/renderer/SynchronizedBufferLock.cpp
+    ./src/renderer/SynchronizedBufferConnection.cpp
     # Engine Module
     ./src/engine/quad.cpp
     # Scenes Module

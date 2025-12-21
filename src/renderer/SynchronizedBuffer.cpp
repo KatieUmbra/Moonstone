@@ -1,8 +1,8 @@
 /*
-* File name: AsyncBuffer.cpp
+* File name: SynchronizedBuffer.cpp
 * Author: Katherine
-* Date created: 2025-12-18 19:06:01
-// Date modified: 2025-12-20 22:36:41
+* Date created: 2025-12-20 23:09:46
+// Date modified: 2025-12-20 23:10:47
 * ===============
 */
 
@@ -21,10 +21,10 @@ module;
 #include <utility>
 #include <vector>
 
-export module moonstone:async_buffer;
+export module moonstone:sync_buffer;
 
-import :async_buffer_lock;
-import :async_buffer_connection;
+import :sync_buffer_lock;
+import :sync_buffer_connection;
 
 export namespace moonstone::renderer
 {
@@ -56,6 +56,10 @@ public:
 	{
 		return this->m_value == a;
 	}
+	constexpr lock_status& operator=(Value a)
+	{
+		this->m_value = a;
+	}
 	constexpr bool operator!=(lock_status a) const
 	{
 		return this->m_value != a.m_value;
@@ -82,32 +86,28 @@ template <typename T, std::size_t N> class async_buffer
 		explicit inner_buffer_scoped_lock(async_buffer<T, N>& element)
 			: m_element{element}
 		{
-			std::thread buffer_locks_yield([element]() {
-				while (true)
+			while (!element.m_locked)
+			{
+				// Hang until lock isn't being used
+			}
+			element.m_locked = true;
+			while (true)
+			{
+				// Hang until handlers finish all their tasks
+				auto is_free = std::reduce(std::execution::par_unseq,
+										   element.m_locks.cbegin(),
+										   element.m_locks.cend());
+				if (is_free == lock_status::unlocked)
 				{
-					auto is_free = std::reduce(std::execution::par_unseq,
-											   element.m_locks.cbegin(),
-											   element.m_locks.cend());
-					if (is_free == lock_status::unlocked)
-					{
-						break;
-					}
+					break;
 				}
-			});
-			std::thread unlock_yield([&]() {
-				while (!element.m_locked)
-					;
-				element.m_locked = true;
-			});
-			unlock_yield.join();
-			buffer_locks_yield.join();
+			}
 		}
 		~inner_buffer_scoped_lock()
 		{
 			this->m_element.m_locked = false;
 		}
 
-	private:
 		inner_buffer_scoped_lock(const inner_buffer_scoped_lock&) = delete;
 		inner_buffer_scoped_lock(inner_buffer_scoped_lock&&) = delete;
 		inner_buffer_scoped_lock& operator=(const inner_buffer_scoped_lock&) =
@@ -157,6 +157,16 @@ public:
 		auto old_index = this->m_buffer.size() - 1;
 		this->m_changes.emplace_back({old_index, new_index});
 		this->m_buffer.erase(this->m_buffer.end());
+	}
+
+	constexpr void lock_handler(std::size_t id)
+	{
+		this->m_locks.at(id) = lock_status::locked;
+	}
+
+	constexpr void unlock_handler(std::size_t id)
+	{
+		this->m_locks.at(id) = lock_status::unlocked;
 	}
 
 	constexpr bool is_locked()
