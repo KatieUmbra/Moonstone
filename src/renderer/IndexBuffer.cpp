@@ -19,8 +19,8 @@ export namespace moonstone::renderer
 class index_buffer
 {
 	std::uint32_t m_renderer_id{};
-	std::uint32_t m_index_count{0};
-	std::uint32_t m_highest{0};
+	std::size_t m_index_count{0};
+	std::size_t m_highest{0};
 	std::flat_map<std::uint32_t, std::uint32_t> m_indices;
 
 	error::result<> create()
@@ -61,13 +61,13 @@ public:
 #endif
 
 	template <std::size_t N>
-	error::result<std::array<std::uint32_t, N>> insert(
-		std::array<std::uint32_t, N> indices)
+	error::result<std::array<std::size_t, N>> insert(
+		const std::array<std::size_t, N>& indices)
 	{
-		std::array<std::uint32_t, N> returned{};
+		std::array<std::size_t, N> returned{};
 		std::ranges::for_each(
 			std::views::zip(indices, returned),
-			[this](std::tuple<std::uint32_t, std::uint32_t&> values) {
+			[this](std::tuple<std::size_t, std::size_t&> values) {
 				auto [index, returned] = values;
 				this->m_indices.insert({this->m_index_count, index});
 				this->m_highest = std::max(index, this->m_highest);

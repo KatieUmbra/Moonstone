@@ -16,19 +16,17 @@ import :sync_buffer;
 
 export namespace moonstone::renderer
 {
-class vertex_buffer
+template <typename T, std::size_t N> class vertex_buffer
 {
 	std::uint32_t m_renderer_id{};
-	std::uint32_t m_vertex_count{0};
 	synchronized_buffer<vertex_element, 4> m_buffer;
-	std::flat_map<std::uint32_t, vertex_element> m_vertices;
 	error::result<> create()
 	{
 		Try(gl().call(glGenBuffers, 1, &this->m_renderer_id));
 		Try(this->bind());
-		Try(gl().call(glBufferData, GL_ARRAY_BUFFER,
-					  this->m_vertices.size() * sizeof(vertex_element),
-					  this->m_vertices.values().data(), GL_DYNAMIC_DRAW));
+		auto [data, size, lock] = this->m_buffer.read();
+		Try(gl().call(glBufferData, GL_ARRAY_BUFFER, size, data,
+					  GL_DYNAMIC_DRAW));
 		return {};
 	}
 
@@ -56,22 +54,21 @@ public:
 		gl().call(glDeleteBuffers, 1, &this->m_renderer_id);
 	}
 #endif
-	error::result<std::uint32_t> insert(vertex_element element)
+	error::result<std::uint32_t> insert(std::array<T, N> data)
 	{
-		this->m_vertices.insert({this->m_vertex_count, element});
+		auto [key, index] = this->m_buffer.insert(data);
 		Try(this->update());
-		return this->m_vertex_count++;
+		return key;
 	}
-	void replace(std::uint32_t element_id, vertex_element element)
+	void replace(std::size_t key, const std::array<T, N>& data)
 	{
 		try
 		{
-			vertex_element& element_ref = this->m_vertices.at(element_id);
-			element_ref = element;
+			this->m_buffer.update(key, data);
 		}
 		catch (const std::out_of_range& e)
 		{
-			std::println("Oops! called index: {}", element_id);
+			std::println("Oops! called key: {}", key);
 		}
 	}
 	error::result<> update()
@@ -80,16 +77,15 @@ public:
 		std::int64_t old_size = 0;
 		Try(gl().call(glGetBufferParameteri64v, GL_ARRAY_BUFFER, GL_BUFFER_SIZE,
 					  &old_size));
-		auto size = this->m_vertices.size() * sizeof(vertex_element);
+		auto [data, size, lock] = this->m_buffer.read();
 		if (size > static_cast<std::uint64_t>(old_size))
 		{
-			Try(gl().call(glBufferData, GL_ARRAY_BUFFER, size,
-						  this->m_vertices.values().data(), GL_DYNAMIC_DRAW));
+			Try(gl().call(glBufferData, GL_ARRAY_BUFFER, size, data,
+						  GL_DYNAMIC_DRAW));
 		}
 		else
 		{
-			Try(gl().call(glBufferSubData, GL_ARRAY_BUFFER, 0, size,
-						  this->m_vertices.values().data()));
+			Try(gl().call(glBufferSubData, GL_ARRAY_BUFFER, 0, size, data));
 		}
 		return {};
 	}

@@ -2,11 +2,13 @@
 * File name: SynchronizedBuffer.cpp
 * Author: Katherine
 * Date created: 2025-12-20 23:09:46
-// Date modified: 2025-12-21 02:57:28
+// Date modified: 2025-12-21 19:08:56
 * ===============
 */
 
 // TODO: Please for the love of satan, improve the naming in this module
+// TODO: CHANGE THE INNER MECHANISM TO A REGULAR VECTOR, NO NEED FOR THE FLAT
+// MAP
 
 module;
 
@@ -68,6 +70,14 @@ public:
 	{
 		return this->m_value == Value::locked;
 	}
+	constexpr lock_status operator+(lock_status rhs) const
+	{
+		if (this->m_value == Value::locked || rhs.m_value == Value::locked)
+		{
+			return lock_status{Value::locked};
+		}
+		return lock_status{Value::unlocked};
+	}
 
 private:
 	Value m_value;
@@ -110,11 +120,11 @@ template <typename T, std::size_t N> class synchronized_buffer
 		}
 
 		inner_buffer_scoped_lock(const inner_buffer_scoped_lock&) = delete;
-		inner_buffer_scoped_lock(inner_buffer_scoped_lock&&) = delete;
+		inner_buffer_scoped_lock(inner_buffer_scoped_lock&&) = default;
 		inner_buffer_scoped_lock& operator=(const inner_buffer_scoped_lock&) =
 			delete;
 		inner_buffer_scoped_lock& operator=(inner_buffer_scoped_lock&&) =
-			delete;
+			default;
 	};
 
 public:
@@ -133,7 +143,7 @@ public:
 		// This one simply creates a lock that's passed down to the
 		// connection so if you wanna read the buffer nothing touches it while
 		// it's copied in opengl
-		inner_buffer_scoped_lock lock(this, this->m_changes.begin());
+		inner_buffer_scoped_lock lock(*this, this->m_changes.begin());
 		return (this->m_buffer.values().data()->data(),
 				this->m_buffer.size() * N * sizeof(T), std::move(lock));
 	}
@@ -149,18 +159,13 @@ public:
 		// that changed, and if so, the connection checks if it was its index
 		// that changed so it will use the new one now.
 		// (Also this will help update the index buffers aswell)
-		inner_buffer_scoped_lock lock(this);
-		auto element = this->m_buffer.find(key);
-		if (element == this->m_buffer.end())
-		{
-			this->m_buffer.erase(element);
-			return;
-		}
-		std::swap(element, this->m_buffer.end());
-		auto new_index = std::distance(this->m_buffer.begin(), element);
+		inner_buffer_scoped_lock lock(*this);
+		auto last = this->m_buffer.end()--;
+		this->m_buffer.erase(key);
+		auto new_index =
+			std::distance(this->m_buffer.begin(), this->m_buffer.find(key));
 		auto old_index = this->m_buffer.size() - 1;
-		this->m_changes.emplace_back({old_index, new_index});
-		this->m_buffer.erase(this->m_buffer.end());
+		this->m_changes.emplace_back(old_index, new_index);
 	}
 
 	void update(std::size_t key, const std::array<T, N>& data)
@@ -171,7 +176,7 @@ public:
 	std::pair<std::size_t, std::size_t> insert(const std::array<T, N>& data)
 	{
 		auto key = this->m_latest_id++;
-		this->m_buffer.emplace_back({key, data});
+		this->m_buffer.emplace({key, data});
 		return (key, this->m_buffer.size() - 1);
 	}
 

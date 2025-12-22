@@ -2,7 +2,7 @@
 * File name: SynchronizedBufferConnection.cpp
 * Author: Katherine
 * Date created: 2025-12-20 23:09:36
-// Date modified: 2025-12-21 02:50:57
+// Date modified: 2025-12-21 18:21:34
 * ===============
 */
 
@@ -43,7 +43,7 @@ template <typename Tm, typename Tt, std::size_t N> class buffer_connection
 
 	void update_connection()
 	{
-		while (this->m_changes_iter != this->m_buffer.end())
+		while (this->m_changes_iter != this->m_buffer.changes_end())
 		{
 			++this->m_changes_iter;
 			auto [old_index, new_index] = *this->m_changes_iter;
@@ -52,6 +52,12 @@ template <typename Tm, typename Tt, std::size_t N> class buffer_connection
 				this->m_buffer_position = new_index;
 			}
 		}
+	}
+
+	void erase()
+	{
+		this->update_connection();
+		this->m_buffer.erase(this->m_buffer_position);
 	}
 
 public:
@@ -70,12 +76,6 @@ public:
 		this->erase();
 	}
 
-	void erase()
-	{
-		this->update_connection();
-		this->m_buffer.erase(this->m_buffer_position);
-	}
-
 	void update(const std::array<Tt, N>& data)
 	{
 		this->update_connection();
@@ -83,5 +83,10 @@ public:
 		this->m_buffer.update(this->m_key, data);
 		this->m_buffer.unlock_handler(this->m_handle_id);
 	}
+
+	buffer_connection(const buffer_connection&) = delete;
+	buffer_connection(buffer_connection&&) = default;
+	buffer_connection& operator=(const buffer_connection&) = delete;
+	buffer_connection& operator=(buffer_connection&&) = delete;
 };
 } // namespace moonstone::renderer

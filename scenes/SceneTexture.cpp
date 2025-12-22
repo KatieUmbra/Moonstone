@@ -26,7 +26,7 @@ class texture : public moonstone::scene
 {
 	renderer::vertex_array vao;
 	renderer::index_buffer ibo;
-	renderer::vertex_buffer vbo;
+	renderer::vertex_buffer<renderer::vertex_element, 4UL> vbo;
 	renderer::buffer_layout blo;
 	moonstone::engine::quad quad1, quad2, quad3;
 	renderer::shader shader;

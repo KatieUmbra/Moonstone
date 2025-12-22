@@ -26,6 +26,8 @@ struct vertex_element
 	{
 	}
 
+	vertex_element() = default;
+
 	~vertex_element() = default;
 	static void register_layout(buffer_layout& layout)
 	{

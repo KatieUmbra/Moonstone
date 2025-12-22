@@ -45,7 +45,8 @@ public:
 		gl().call(glDeteglDeleteVertexArrays, 1, &this->m_renderer_id);
 	}
 #endif
-	[[nodiscard]] error::result<> add_buffer(const vertex_buffer& vb,
+	template <typename T, std::size_t N>
+	[[nodiscard]] error::result<> add_buffer(const vertex_buffer<T, N>& vb,
 											 const buffer_layout& bl) const
 	{
 		Try(this->bind());
