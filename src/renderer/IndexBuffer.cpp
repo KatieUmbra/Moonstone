@@ -3,6 +3,7 @@ module;
 #include "Try.hpp"
 #include "glad/glad.h"
 #include <algorithm>
+#include <exception>
 #include <flat_map>
 #include <print>
 #include <ranges>

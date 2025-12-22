@@ -5,6 +5,8 @@ set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
+option(DEBUG_ASAN "Enable Address Sanitizer when debug mode is on" ON)
+
 set(GLFWPP_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # disable building GLFWPP examples
 SET(IMGUI_BUILD_GLFW_BINDING ON)
 
@@ -64,6 +66,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     glm::glm
     imgui::imgui
 )
+target_compile_options(${PROJECT_NAME} PRIVATE -stdlib=libc++)
+target_link_options(${PROJECT_NAME} PRIVATE -stdlib=libc++)
+if(DEBUG_ASAN)
+    target_compile_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-fno-omit-frame-pointer -fsanitize=address>)
+    target_link_options(${PROJECT_NAME} PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
+endif()
 target_include_directories(${PROJECT_NAME}
     SYSTEM PRIVATE
     Angelscript_INCLUDE_DIRS
@@ -90,3 +98,9 @@ target_include_directories(game SYSTEM PRIVATE
     glm_INCLUDE_DIRS
     imgui_INCLUDE_DIRS
     )
+target_compile_options(game PRIVATE -stdlib=libc++)
+target_link_options(game PRIVATE -stdlib=libc++)
+if(DEBUG_ASAN)
+target_compile_options(game PRIVATE $<$<CONFIG:Debug>:-fno-omit-frame-pointer -fsanitize=address>)
+target_link_options(game PRIVATE $<$<CONFIG:Debug>:-fsanitize=address>)
+endif()

@@ -19,7 +19,7 @@ import :sync_buffer;
 
 export namespace moonstone::engine
 {
-using quad_handler = renderer::buffer_connection<
+using vbo_connection = renderer::buffer_connection<
 	renderer::synchronized_buffer<renderer::vertex_element, 4UL>,
 	renderer::vertex_element, 4UL>;
 class quad
@@ -35,7 +35,7 @@ class quad
 		glm::vec2{1.0F, 1.0F}};
 	std::array<std::uint32_t, 4> m_buffer_vertices{0U, 0U, 0U, 0U};
 	renderer::index_buffer& m_ibo;
-	quad_handler m_vbo_connection;
+	vbo_connection m_vbo_connection;
 
 	void update_quad_vertices()
 	{
@@ -75,7 +75,7 @@ class quad
 
 public:
 	quad(glm::vec2 position, glm::vec2 size, glm::vec2 anchor,
-		 std::uint32_t texture, quad_handler&& vbo_handler,
+		 std::uint32_t texture, vbo_connection&& vbo_handler,
 		 renderer::index_buffer& ibo)
 		: m_position(position), m_size(size),
 		  m_anchor(glm::clamp(anchor, 0.0F, 1.0F)), m_texture(texture),
@@ -108,7 +108,7 @@ public:
 		}
 		this->m_vbo_connection.update(temp_buffer);
 	}
-	quad(const quad&) = default;
+	quad(const quad&) = delete;
 	quad(quad&&) = default;
 	quad& operator=(const quad&) = delete;
 	quad& operator=(quad&&) = delete;

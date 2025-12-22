@@ -2,23 +2,20 @@
 * File name: SynchronizedBuffer.cpp
 * Author: Katherine
 * Date created: 2025-12-20 23:09:46
-// Date modified: 2025-12-21 19:08:56
+// Date modified: 2025-12-22 16:53:00
 * ===============
 */
-
-// TODO: Please for the love of satan, improve the naming in this module
-// TODO: CHANGE THE INNER MECHANISM TO A REGULAR VECTOR, NO NEED FOR THE FLAT
-// MAP
 
 module;
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <exception>
 #include <execution>
-#include <flat_map>
-#include <iterator>
 #include <numeric>
+#include <print>
+#include <stdexcept>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -38,8 +35,10 @@ public:
 		locked,
 		unlocked
 	};
-	lock_status() = default;
 	constexpr explicit lock_status(Value status) : m_value(status)
+	{
+	}
+	constexpr explicit lock_status() : m_value(Value::unlocked)
 	{
 	}
 
@@ -85,11 +84,11 @@ private:
 
 template <typename T, std::size_t N> class synchronized_buffer
 {
-	std::flat_map<std::size_t, std::array<T, N>> m_buffer{};
+	std::vector<std::array<T, N>> m_buffer{};
 	std::vector<moonstone::renderer::lock_status> m_locks;
+	// First: Old index, Second: New index
 	std::vector<std::pair<std::size_t, std::size_t>> m_changes;
 	bool m_locked{false};
-	std::size_t m_latest_id{0};
 
 	struct inner_buffer_scoped_lock
 	{
@@ -97,7 +96,7 @@ template <typename T, std::size_t N> class synchronized_buffer
 		explicit inner_buffer_scoped_lock(synchronized_buffer<T, N>& element)
 			: m_element{element}
 		{
-			while (!element.m_locked)
+			while (element.m_locked)
 			{
 				// Hang until lock isn't being used
 			}
@@ -105,8 +104,7 @@ template <typename T, std::size_t N> class synchronized_buffer
 			while (true)
 			{
 				// Hang until handlers finish all their tasks
-				auto is_free = std::reduce(std::execution::par_unseq,
-										   element.m_locks.cbegin(),
+				auto is_free = std::reduce(element.m_locks.cbegin(),
 										   element.m_locks.cend());
 				if (is_free == lock_status::unlocked)
 				{
@@ -131,11 +129,21 @@ public:
 	synchronized_buffer<T, N>() = default;
 	buffer_connection<synchronized_buffer<T, N>, T, N> connect()
 	{
-		inner_buffer_scoped_lock lock(this);
+		inner_buffer_scoped_lock lock(*this);
 		this->m_locks.emplace_back(lock_status::unlocked);
-		auto [key, position] = this->insert({});
-		return buffer_connection(this->m_locks.size() - 1, position, key, this,
-								 this->m_changes.begin());
+
+		this->m_buffer.emplace_back(std::array<T, N>{});
+		std::size_t position = this->m_buffer.size() - 1;
+
+		std::size_t last_change = 0;
+		if (this->m_changes.size() > 0)
+		{
+			last_change = this->m_changes.size() - 1;
+		}
+
+		buffer_connection<synchronized_buffer<T, N>, T, N> connection{
+			this->m_locks.size() - 1, position, *this, last_change};
+		return connection;
 	}
 
 	std::tuple<T*, std::size_t, inner_buffer_scoped_lock&&> read()
@@ -143,12 +151,13 @@ public:
 		// This one simply creates a lock that's passed down to the
 		// connection so if you wanna read the buffer nothing touches it while
 		// it's copied in opengl
-		inner_buffer_scoped_lock lock(*this, this->m_changes.begin());
-		return (this->m_buffer.values().data()->data(),
-				this->m_buffer.size() * N * sizeof(T), std::move(lock));
+		inner_buffer_scoped_lock lock(*this);
+		return std::tuple(this->m_buffer.data()->data(),
+						  this->m_buffer.size() * N * sizeof(T),
+						  std::move(lock));
 	}
 
-	void erase(std::size_t key)
+	void erase(std::size_t index)
 	{
 		// Explaining so my future self knows what the hell I'm doing.
 		// so wat I do is create a scoped lock here so it automatically unlocks
@@ -160,24 +169,17 @@ public:
 		// that changed so it will use the new one now.
 		// (Also this will help update the index buffers aswell)
 		inner_buffer_scoped_lock lock(*this);
-		auto last = this->m_buffer.end()--;
-		this->m_buffer.erase(key);
-		auto new_index =
-			std::distance(this->m_buffer.begin(), this->m_buffer.find(key));
+		auto last = --this->m_buffer.end();
+		auto current = this->m_buffer.begin() + index;
+		std::iter_swap(last, current);
 		auto old_index = this->m_buffer.size() - 1;
-		this->m_changes.emplace_back(old_index, new_index);
+		this->m_buffer.erase(last);
+		this->m_changes.emplace_back(std::make_pair(old_index, index));
 	}
 
-	void update(std::size_t key, const std::array<T, N>& data)
+	void update(std::size_t index, const std::array<T, N>& data)
 	{
-		this->m_buffer.at(key) = data;
-	}
-
-	std::pair<std::size_t, std::size_t> insert(const std::array<T, N>& data)
-	{
-		auto key = this->m_latest_id++;
-		this->m_buffer.emplace({key, data});
-		return (key, this->m_buffer.size() - 1);
+		this->m_buffer.at(index) = data;
 	}
 
 	constexpr void lock_handler(std::size_t id)
@@ -195,10 +197,29 @@ public:
 		return this->m_locked;
 	}
 
-	constexpr auto changes_end()
-		-> std::vector<std::pair<std::size_t, std::size_t>>::iterator
+	constexpr std::size_t changes_last_index()
 	{
-		return this->m_changes.end();
+		std::size_t last_change = 0;
+		if (this->m_changes.size() > 0)
+		{
+			last_change = this->m_changes.size() - 1;
+		}
+		return last_change;
+	}
+
+	constexpr std::pair<std::size_t, std::size_t> get_change(std::size_t index)
+	{
+		try
+		{
+			return this->m_changes.at(index);
+		}
+		catch (const std::out_of_range& e)
+		{
+			std::println(stderr, "{}, Index requested: {}, Size of vector: {}",
+						 "You fucked up, this shouldn't be here", index,
+						 this->m_changes.size());
+			std::terminate();
+		}
 	}
 };
 } // namespace moonstone::renderer

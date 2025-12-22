@@ -2,7 +2,7 @@ module;
 
 #include "Try.hpp"
 #include <cstdint>
-#include <flat_map>
+#include <exception>
 #include <glad/glad.h>
 #include <print>
 #include <stdexcept>
@@ -54,11 +54,10 @@ public:
 		gl().call(glDeleteBuffers, 1, &this->m_renderer_id);
 	}
 #endif
-	error::result<std::uint32_t> insert(std::array<T, N> data)
+	buffer_connection<synchronized_buffer<T, N>, T, N> connect()
 	{
-		auto [key, index] = this->m_buffer.insert(data);
-		Try(this->update());
-		return key;
+		auto connection = this->m_buffer.connect();
+		return connection;
 	}
 	void replace(std::size_t key, const std::array<T, N>& data)
 	{

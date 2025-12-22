@@ -26,7 +26,11 @@ struct vertex_element
 	{
 	}
 
-	vertex_element() = default;
+	vertex_element()
+		: m_normal{0.0F, 0.0F, 0.0F}, m_uv{0.0F, 0.0F, 0.0F},
+		  m_position{0.0F, 0.0F}
+	{
+	}
 
 	~vertex_element() = default;
 	static void register_layout(buffer_layout& layout)
