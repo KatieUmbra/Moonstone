@@ -60,14 +60,13 @@ class texture : public moonstone::scene
 	}
 
 public:
-	explicit texture(renderer::renderer& renderer)
-		: quad1{{}, {200.0F, 200.0F},	 {0.0F, 0.0F},
-				2,	this->vbo.connect(), ibo},
-		  quad2{{}, {50.0F, 50.0F}, {0.5F, 0.5F}, 0, this->vbo.connect(), ibo},
-		  quad3{{}, {300.0F, 300.0F},	 {0.0F, 0.0F},
-				1,	this->vbo.connect(), ibo},
-		  tex_arr({"texarr1.png", "texarr2.png", "texarr3.png"}),
-		  renderer(renderer), shader{"shader.vert", "shader.frag"}
+	explicit texture(renderer::renderer& renderer) :
+		quad1{{}, {200.0F, 200.0F}, {0.0F, 0.0F}, 2, this->vbo.connect(), ibo},
+		quad2{{}, {50.0F, 50.0F}, {0.5F, 0.5F}, 0, this->vbo.connect(), ibo},
+		quad3{{}, {300.0F, 300.0F}, {0.0F, 0.0F}, 1, this->vbo.connect(), ibo},
+		tex_arr({"texarr1.png", "texarr2.png", "texarr3.png"}),
+		renderer(renderer),
+		shader{"shader.vert", "shader.frag"}
 	{
 		error::init();
 		renderer::vertex_element::register_layout(blo);

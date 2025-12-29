@@ -29,16 +29,16 @@ class window
 
 	static error::result<> create()
 	{
-		Try(renderer::gl().call(glBlendFunc, GL_SRC_ALPHA,
-								GL_ONE_MINUS_SRC_ALPHA));
+		Try(renderer::gl().call(
+			glBlendFunc, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 		Try(renderer::gl().call(glEnable, GL_BLEND));
 		return {};
 	}
 
 public:
-	explicit window(const window_properties& props)
-		: m_window{glfwCreateWindow(props.width, props.height, props.title,
-									nullptr, nullptr)}
+	explicit window(const window_properties& props) :
+		m_window{glfwCreateWindow(props.width, props.height, props.title,
+								  nullptr, nullptr)}
 	{
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);

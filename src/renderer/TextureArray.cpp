@@ -28,7 +28,8 @@ struct texel
 
 export namespace moonstone::renderer
 {
-template <std::size_t W, std::size_t H> class texture_array
+template <std::size_t W, std::size_t H>
+class texture_array
 {
 	static constexpr std::int32_t s_pixel_size = 4;
 	std::uint32_t m_renderer_id{};
@@ -41,8 +42,8 @@ template <std::size_t W, std::size_t H> class texture_array
 		Try(gl().call(glGenTextures, 1, &this->m_renderer_id));
 		Try(gl().call(glBindTexture, GL_TEXTURE_2D_ARRAY, this->m_renderer_id));
 		// Allocate the storage.
-		Try(gl().call(glTexStorage3D, GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, W, H,
-					  size));
+		Try(gl().call(
+			glTexStorage3D, GL_TEXTURE_2D_ARRAY, 1, GL_RGBA8, W, H, size));
 		// Upload pixel data.
 		// The first 0 refers to the mipmap level (level 0, since there's only
 		// 1) The following 2 zeroes refers to the x and y offsets in case you
@@ -50,17 +51,34 @@ template <std::size_t W, std::size_t H> class texture_array
 		// index offset (we start from index 0 and have 2 levels). Altogether
 		// you can specify a 3D box subset of the overall texture, but only one
 		// mip level at a time.
-		Try(gl().call(glTexSubImage3D, GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, W, H,
-					  size, GL_RGBA, GL_UNSIGNED_BYTE,
+		Try(gl().call(glTexSubImage3D,
+					  GL_TEXTURE_2D_ARRAY,
+					  0,
+					  0,
+					  0,
+					  0,
+					  W,
+					  H,
+					  size,
+					  GL_RGBA,
+					  GL_UNSIGNED_BYTE,
 					  this->m_image_buffers.data()));
 		// Always set reasonable texture parameters
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D_ARRAY,
-					  GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D_ARRAY,
-					  GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S,
+		Try(gl().call(glTexParameteri,
+					  GL_TEXTURE_2D_ARRAY,
+					  GL_TEXTURE_MIN_FILTER,
+					  GL_LINEAR));
+		Try(gl().call(glTexParameteri,
+					  GL_TEXTURE_2D_ARRAY,
+					  GL_TEXTURE_MAG_FILTER,
+					  GL_LINEAR));
+		Try(gl().call(glTexParameteri,
+					  GL_TEXTURE_2D_ARRAY,
+					  GL_TEXTURE_WRAP_S,
 					  GL_CLAMP_TO_EDGE));
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T,
+		Try(gl().call(glTexParameteri,
+					  GL_TEXTURE_2D_ARRAY,
+					  GL_TEXTURE_WRAP_T,
 					  GL_CLAMP_TO_EDGE));
 		Try(gl().call(glGenerateMipmap, GL_TEXTURE_2D_ARRAY));
 		return {};
@@ -68,8 +86,8 @@ template <std::size_t W, std::size_t H> class texture_array
 
 public:
 	texture_array(std::initializer_list<const char*> texture_paths =
-					  std::initializer_list<const char*>{})
-		: m_image_buffers(texture_paths.size())
+					  std::initializer_list<const char*>{}) :
+		m_image_buffers(texture_paths.size())
 	{
 		stbi_set_flip_vertically_on_load_thread(1);
 		for (const auto& [texture_path, element] :
@@ -80,8 +98,8 @@ public:
 			int width = 0;
 			int height = 0;
 			int channels = 0;
-			stbi_uc* texels = stbi_load(path.c_str(), &width, &height,
-										&channels, STBI_rgb_alpha);
+			stbi_uc* texels = stbi_load(
+				path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 			/*
 			ASSERT(width == W)
 			ASSERT(height == H)

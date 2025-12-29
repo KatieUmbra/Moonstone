@@ -16,8 +16,8 @@ export namespace moonstone::renderer
 struct gl
 {
 #ifdef _DEBUG
-	explicit gl(std::source_location l = std::source_location::current())
-		: m_location(l)
+	explicit gl(std::source_location l = std::source_location::current()) :
+		m_location(l)
 	{
 		std::string_view file{l.file_name()};
 		std::string new_file{file.begin() + file.rfind('/'), file.end()};

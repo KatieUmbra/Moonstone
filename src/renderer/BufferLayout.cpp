@@ -41,14 +41,16 @@ class buffer_layout
 
 public:
 #define PUSH(TYPE, GL_TYPE, NORMALIZE)                                         \
-	template <> void push<TYPE>(unsigned int count)                            \
+	template <>                                                                \
+	void push<TYPE>(unsigned int count)                                        \
 	{                                                                          \
 		this->m_elements.emplace_back(                                         \
 			buffer_element{GL_TYPE, count, NORMALIZE});                        \
 		this->m_stride += buffer_element::get_size_of_type(GL_TYPE) * count;   \
 	}
 
-	template <typename T> void push(std::uint32_t /*Count*/)
+	template <typename T>
+	void push(std::uint32_t /*Count*/)
 	{
 		std::terminate();
 	}

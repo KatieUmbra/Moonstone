@@ -16,7 +16,8 @@ import :sync_buffer;
 
 export namespace moonstone::renderer
 {
-template <typename T, std::size_t N> class vertex_buffer
+template <typename T, std::size_t N>
+class vertex_buffer
 {
 	std::uint32_t m_renderer_id{};
 	synchronized_buffer<vertex_element, 4> m_buffer;
@@ -25,8 +26,8 @@ template <typename T, std::size_t N> class vertex_buffer
 		Try(gl().call(glGenBuffers, 1, &this->m_renderer_id));
 		Try(this->bind());
 		auto [data, size, lock] = this->m_buffer.read();
-		Try(gl().call(glBufferData, GL_ARRAY_BUFFER, size, data,
-					  GL_DYNAMIC_DRAW));
+		Try(gl().call(
+			glBufferData, GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW));
 		return {};
 	}
 
@@ -74,13 +75,15 @@ public:
 	{
 		Try(this->bind());
 		std::int64_t old_size = 0;
-		Try(gl().call(glGetBufferParameteri64v, GL_ARRAY_BUFFER, GL_BUFFER_SIZE,
+		Try(gl().call(glGetBufferParameteri64v,
+					  GL_ARRAY_BUFFER,
+					  GL_BUFFER_SIZE,
 					  &old_size));
 		auto [data, size, lock] = this->m_buffer.read();
 		if (size > static_cast<std::uint64_t>(old_size))
 		{
-			Try(gl().call(glBufferData, GL_ARRAY_BUFFER, size, data,
-						  GL_DYNAMIC_DRAW));
+			Try(gl().call(
+				glBufferData, GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW));
 		}
 		else
 		{

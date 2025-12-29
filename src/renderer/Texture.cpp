@@ -28,16 +28,27 @@ class texture
 	{
 		Try(gl().call(glGenTextures, 1, &this->m_renderer_id));
 		Try(gl().call(glBindTexture, GL_TEXTURE_2D, this->m_renderer_id));
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-					  GL_LINEAR));
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-					  GL_LINEAR));
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+		Try(gl().call(
+			glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+		Try(gl().call(
+			glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+		Try(gl().call(glTexParameteri,
+					  GL_TEXTURE_2D,
+					  GL_TEXTURE_WRAP_S,
 					  GL_CLAMP_TO_EDGE));
-		Try(gl().call(glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+		Try(gl().call(glTexParameteri,
+					  GL_TEXTURE_2D,
+					  GL_TEXTURE_WRAP_T,
 					  GL_CLAMP_TO_EDGE));
-		Try(gl().call(glTexImage2D, GL_TEXTURE_2D, 0, GL_RGBA8, this->m_width,
-					  this->m_height, 0, GL_RGBA8, GL_UNSIGNED_BYTE,
+		Try(gl().call(glTexImage2D,
+					  GL_TEXTURE_2D,
+					  0,
+					  GL_RGBA8,
+					  this->m_width,
+					  this->m_height,
+					  0,
+					  GL_RGBA8,
+					  GL_UNSIGNED_BYTE,
 					  this->m_local_buffer));
 		Try(texture::unbind());
 		return {};
@@ -49,8 +60,11 @@ public:
 		stbi_set_flip_vertically_on_load(1);
 		auto real_path = std::format("{}{}", "assets/", path);
 
-		m_local_buffer = stbi_load(real_path.c_str(), &this->m_width,
-								   &this->m_height, &this->m_pixel_size, 4);
+		m_local_buffer = stbi_load(real_path.c_str(),
+								   &this->m_width,
+								   &this->m_height,
+								   &this->m_pixel_size,
+								   4);
 
 		auto err = this->create();
 		if (!err.has_value())

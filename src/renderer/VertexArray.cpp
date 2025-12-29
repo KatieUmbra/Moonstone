@@ -60,8 +60,12 @@ public:
 			const auto stride = bl.get_stride();
 			const auto size = element.count;
 			Try(gl().call(glEnableVertexAttribArray, i));
-			Try(gl().call(glVertexAttribPointer, i, size, element.type,
-						  (element.normalized ? GL_TRUE : GL_FALSE), stride,
+			Try(gl().call(glVertexAttribPointer,
+						  i,
+						  size,
+						  element.type,
+						  (element.normalized ? GL_TRUE : GL_FALSE),
+						  stride,
 						  reinterpret_cast<const void*>(offset)));
 			offset += static_cast<std::uintptr_t>(element.count) *
 					  buffer_element::get_size_of_type(element.type);

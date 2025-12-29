@@ -27,11 +27,13 @@ class index_buffer
 	error::result<> create()
 	{
 		Try(gl().call(glGenBuffers, 1, &this->m_renderer_id));
-		Try(gl().call(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER,
-					  this->m_renderer_id));
-		Try(gl().call(glBufferData, GL_ELEMENT_ARRAY_BUFFER,
+		Try(gl().call(
+			glBindBuffer, GL_ELEMENT_ARRAY_BUFFER, this->m_renderer_id));
+		Try(gl().call(glBufferData,
+					  GL_ELEMENT_ARRAY_BUFFER,
 					  this->m_indices.size() & sizeof(std::uint32_t),
-					  this->m_indices.values().data(), GL_DYNAMIC_DRAW));
+					  this->m_indices.values().data(),
+					  GL_DYNAMIC_DRAW));
 		return {};
 	}
 
@@ -95,17 +97,25 @@ public:
 	{
 		Try(this->bind());
 		std::int64_t old_size = 0;
-		Try(gl().call(glGetBufferParameteri64v, GL_ELEMENT_ARRAY_BUFFER,
-					  GL_BUFFER_SIZE, &old_size));
+		Try(gl().call(glGetBufferParameteri64v,
+					  GL_ELEMENT_ARRAY_BUFFER,
+					  GL_BUFFER_SIZE,
+					  &old_size));
 		auto size = this->m_indices.size() * sizeof(std::uint32_t);
 		if (size > old_size)
 		{
-			Try(gl().call(glBufferData, GL_ELEMENT_ARRAY_BUFFER, size,
-						  this->m_indices.values().data(), GL_DYNAMIC_DRAW));
+			Try(gl().call(glBufferData,
+						  GL_ELEMENT_ARRAY_BUFFER,
+						  size,
+						  this->m_indices.values().data(),
+						  GL_DYNAMIC_DRAW));
 		}
 		else
 		{
-			Try(gl().call(glBufferSubData, GL_ELEMENT_ARRAY_BUFFER, 0, size,
+			Try(gl().call(glBufferSubData,
+						  GL_ELEMENT_ARRAY_BUFFER,
+						  0,
+						  size,
 						  this->m_indices.values().data()));
 		}
 		return {};
@@ -113,8 +123,8 @@ public:
 
 	[[nodiscard]] error::result<> bind() const
 	{
-		Try(gl().call(glBindBuffer, GL_ELEMENT_ARRAY_BUFFER,
-					  this->m_renderer_id));
+		Try(gl().call(
+			glBindBuffer, GL_ELEMENT_ARRAY_BUFFER, this->m_renderer_id));
 		return {};
 	}
 

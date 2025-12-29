@@ -30,9 +30,10 @@ class shader
 	std::string m_fs_file_path;
 	std::unordered_map<std::string, int> m_uniform_location_cache;
 
-	shader(std::string vs_path, std::string fs_path, std::uint32_t id)
-		: m_fs_file_path{std::move(fs_path)},
-		  m_vs_file_path{std::move(vs_path)}, m_renderer_id{id}
+	shader(std::string vs_path, std::string fs_path, std::uint32_t id) :
+		m_fs_file_path{std::move(fs_path)},
+		m_vs_file_path{std::move(vs_path)},
+		m_renderer_id{id}
 	{
 	}
 
@@ -53,7 +54,9 @@ class shader
 			auto location = std::source_location::current();
 			std::println(stderr,
 						 "[{}:{}][OpenGL][WARN]: uniform {} doesn't exist!",
-						 location.file_name(), location.line(), name);
+						 location.file_name(),
+						 location.line(),
+						 name);
 		}
 
 		this->m_uniform_location_cache[name] = location;
@@ -99,7 +102,8 @@ class shader
 			Try(gl().call(glGetShaderiv, id, GL_INFO_LOG_LENGTH, &length));
 			char* message = static_cast<char*>(alloca(length * sizeof(char)));
 			Try(gl().call(glGetShaderInfoLog, id, length, &length, message));
-			std::println(stderr, "Failed to compile {} shader: {}",
+			std::println(stderr,
+						 "Failed to compile {} shader: {}",
 						 (type == GL_VERTEX_SHADER ? "vertex" : "fragment"),
 						 message);
 			Try(gl().call(glDeleteShader, id));
@@ -168,8 +172,8 @@ public:
 		-> error::result<>
 	{
 		std::uint32_t location = Try(this->get_uniform_location(name));
-		Try(gl().call(glUniformMatrix4fv, location, 1, GL_FALSE,
-					  glm::value_ptr(data)));
+		Try(gl().call(
+			glUniformMatrix4fv, location, 1, GL_FALSE, glm::value_ptr(data)));
 		return {};
 	}
 

@@ -40,8 +40,11 @@ public:
 		Try(shader.bind());
 		Try(vao.bind());
 		Try(ib.bind());
-		Try(gl().call(glDrawElements, GL_TRIANGLES, ib.get_size(),
-					  GL_UNSIGNED_INT, nullptr));
+		Try(gl().call(glDrawElements,
+					  GL_TRIANGLES,
+					  ib.get_size(),
+					  GL_UNSIGNED_INT,
+					  nullptr));
 		return {};
 	}
 	static error::result<> clear()

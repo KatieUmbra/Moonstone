@@ -20,15 +20,16 @@ struct vertex_element
 	glm::vec2 m_position;
 
 	vertex_element(glm::vec2 m_position, glm::vec2 m_uv,
-				   std::uint32_t m_tex_layer)
-		: /* m_normal(m_normal), */ m_position(m_position),
-		  m_uv(m_uv.x, m_uv.y, static_cast<std::float_t>(m_tex_layer))
+				   std::uint32_t m_tex_layer) :
+		/* m_normal(m_normal), */ m_position(m_position),
+		m_uv(m_uv.x, m_uv.y, static_cast<std::float_t>(m_tex_layer))
 	{
 	}
 
-	vertex_element()
-		: m_normal{0.0F, 0.0F, 0.0F}, m_uv{0.0F, 0.0F, 0.0F},
-		  m_position{0.0F, 0.0F}
+	vertex_element() :
+		m_normal{0.0F, 0.0F, 0.0F},
+		m_uv{0.0F, 0.0F, 0.0F},
+		m_position{0.0F, 0.0F}
 	{
 	}
 
@@ -44,7 +45,6 @@ struct vertex_element
 		// total        8 floats
 		// In total there's 32 bytes
 		// so stride will be 32 bytes
-		std::println("Stride: {}", layout.get_stride());
 	}
 
 	vertex_element(const vertex_element&) = default;

@@ -19,8 +19,8 @@ class clear_color : public scene
 
 public:
 	clear_color() : m_clear_color{1.0F, 0.8F, 0.8F, 1.0F} {};
-	explicit clear_color(std::array<float, 4> m_clear_color)
-		: m_clear_color(m_clear_color)
+	explicit clear_color(std::array<float, 4> m_clear_color) :
+		m_clear_color(m_clear_color)
 	{
 	}
 	~clear_color() override = default;
@@ -31,8 +31,10 @@ public:
 	};
 	error::result<> on_render() override
 	{
-		Try(renderer::gl().call(glClearColor, m_clear_color[0],
-								m_clear_color[1], m_clear_color[2],
+		Try(renderer::gl().call(glClearColor,
+								m_clear_color[0],
+								m_clear_color[1],
+								m_clear_color[2],
 								m_clear_color[3]));
 		Try(renderer::gl().call(glClear, GL_COLOR_BUFFER_BIT));
 		return {};

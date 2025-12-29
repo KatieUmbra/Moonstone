@@ -29,8 +29,8 @@ void init()
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(gl_message_callback, nullptr);
 	GLuint unusedIds = 0;
-	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0,
-						  &unusedIds, 1U);
+	glDebugMessageControl(
+		GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, &unusedIds, 1U);
 }
 template <typename T>
 concept is_error = requires(T v) {
@@ -44,8 +44,9 @@ struct shader_error
 	std::source_location location;
 	std::string message;
 	shader_error(std::source_location l = std::source_location::current(),
-				 std::string message = "")
-		: location(l), message(std::move(message))
+				 std::string message = "") :
+		location(l),
+		message(std::move(message))
 	{
 	}
 	void set_location(std::source_location loc)
@@ -61,8 +62,10 @@ struct shader_error
 	}
 	std::string format()
 	{
-		return std::format("[{}:{}][Shader]: {}", location.file_name(),
-						   location.line(), message);
+		return std::format("[{}:{}][Shader]: {}",
+						   location.file_name(),
+						   location.line(),
+						   message);
 	}
 };
 struct gl_error
@@ -76,16 +79,25 @@ struct gl_error
 	std::string message;
 
 	gl_error(std::string_view source, std::string file, std::string_view type,
-			 std::uint32_t id, std::string_view severity, std::string message)
-		: source(source), file(std::move(file)), type(type), id(id),
-		  severity(severity), message(std::move(message))
+			 std::uint32_t id, std::string_view severity, std::string message) :
+		source(source),
+		file(std::move(file)),
+		type(type),
+		id(id),
+		severity(severity),
+		message(std::move(message))
 	{
 	}
 
 	[[nodiscard]] std::string format() const
 	{
-		return std::format("[{}:{}][{};{};{}][{}]: {}", location.file_name(),
-						   location.line(), source, type, severity, id,
+		return std::format("[{}:{}][{};{};{}][{}]: {}",
+						   location.file_name(),
+						   location.line(),
+						   source,
+						   type,
+						   severity,
+						   id,
 						   message);
 	};
 	void set_location(std::source_location location)
